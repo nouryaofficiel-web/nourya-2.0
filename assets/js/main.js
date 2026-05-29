@@ -5,7 +5,7 @@
 // ─── SUPABASE ───
 const SB_URL = 'https://wnwirmlvgjfzymixswsy.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indud2lybWx2Z2pmenltaXhzd3N5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NzcxMzksImV4cCI6MjA4OTQ1MzEzOX0.wxrbK6_ny7j3wI2l-bvIy9ljYqj_xbiyHncB5QJCnSc';
-const supabase = window.supabase.createClient(SB_URL, SB_KEY);
+const supabase = window.supabase ? window.supabase.createClient(SB_URL, SB_KEY) : null;
 
 // ─── SITE SETTINGS ───
 let siteSettings = {
@@ -156,35 +156,35 @@ function updateParallax() {
 
 // ─── IMAGE URLS ───
 const IMGS = {
-  serum_figue:'https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=600&q=80',
-  huile_nigelle:'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=600&q=80',
-  huile_argan:'https://images.unsplash.com/photo-1631125915902-d8abe9225ff2?w=600&q=80',
-  masque_ghassoul:'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=600&q=80',
-  masque_miel:'https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?w=600&q=80',
-  masque_hibiscus:'https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=600&q=80',
-  gommage:'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=600&q=80',
-  beurre_leaveIn:'https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?w=600&q=80',
-  beurre_rose:'https://images.unsplash.com/photo-1519415510236-718bdfcd89c8?w=600&q=80',
-  serum_saffran:'https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=600&q=80',
+  serum_figue:'https://images.unsplash.com/photo-1611080541599-8c6dbde6ed28?w=600&q=80',
+  huile_nigelle:'https://images.unsplash.com/photo-1548013146-72479768bada?w=600&q=80',
+  huile_argan:'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=600&q=80',
+  masque_ghassoul:'https://images.unsplash.com/photo-1601049541982-13f4e79a47b5?w=600&q=80',
+  masque_miel:'https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=600&q=80',
+  masque_hibiscus:'https://images.unsplash.com/photo-1502741224143-90386d7f8c82?w=600&q=80',
+  gommage:'https://images.unsplash.com/photo-1556909172-6abba14a1c3d?w=600&q=80',
+  beurre_leaveIn:'https://images.unsplash.com/photo-1526947425960-945c6e72858f?w=600&q=80',
+  beurre_rose:'https://images.unsplash.com/photo-1559181567-c3190bfa3c5e?w=600&q=80',
+  serum_saffran:'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=600&q=80',
   savon_noir:'https://images.unsplash.com/photo-1600857544200-b2f666a9a2ec?w=600&q=80',
-  eau_oranger:'https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=600&q=80',
+  eau_oranger:'https://images.unsplash.com/photo-1590419690008-905895e8fe0d?w=600&q=80',
   ghassoul_poudre:'https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=600&q=80',
-  ricin:'https://images.unsplash.com/photo-1515377905703-c4788e51af15?w=600&q=80',
-  coffret_eclat:'https://images.unsplash.com/photo-1519415510236-718bdfcd89c8?w=600&q=80',
+  ricin:'https://images.unsplash.com/photo-1617128734662-66da6c1d3505?w=600&q=80',
+  coffret_eclat:'https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=600&q=80',
   coffret_hammam:'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=600&q=80',
-  coffret_capillaire:'https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=600&q=80',
-  coffret_antiage:'https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=600&q=80',
-  diy1:'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=600&q=80',
-  diy2:'https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=600&q=80',
-  diy3:'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=600&q=80',
-  ingr_figue:'https://images.unsplash.com/photo-1631125915902-d8abe9225ff2?w=400&q=80',
-  ingr_nigelle:'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=400&q=80',
+  coffret_capillaire:'https://images.unsplash.com/photo-1526947425960-945c6e72858f?w=600&q=80',
+  coffret_antiage:'https://images.unsplash.com/photo-1559181567-c3190bfa3c5e?w=600&q=80',
+  diy1:'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=600&q=80',
+  diy2:'https://images.unsplash.com/photo-1611080541599-8c6dbde6ed28?w=600&q=80',
+  diy3:'https://images.unsplash.com/photo-1556909172-6abba14a1c3d?w=600&q=80',
+  ingr_figue:'https://images.unsplash.com/photo-1611080541599-8c6dbde6ed28?w=400&q=80',
+  ingr_nigelle:'https://images.unsplash.com/photo-1548013146-72479768bada?w=400&q=80',
   ingr_ghassoul:'https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=400&q=80',
-  ingr_oranger:'https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=400&q=80',
-  ingr_argan:'https://images.unsplash.com/photo-1515377905703-c4788e51af15?w=400&q=80',
-  ingr_safran:'https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=400&q=80',
-  ingr_karite:'https://images.unsplash.com/photo-1519415510236-718bdfcd89c8?w=400&q=80',
-  ingr_hibiscus:'https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=400&q=80',
+  ingr_oranger:'https://images.unsplash.com/photo-1590419690008-905895e8fe0d?w=400&q=80',
+  ingr_argan:'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=400&q=80',
+  ingr_safran:'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400&q=80',
+  ingr_karite:'https://images.unsplash.com/photo-1526947425960-945c6e72858f?w=400&q=80',
+  ingr_hibiscus:'https://images.unsplash.com/photo-1502741224143-90386d7f8c82?w=400&q=80',
 };
 
 // ─── DONNÉES PRODUITS ───
@@ -643,7 +643,7 @@ document.getElementById('ingr-grid').innerHTML = INGRS.map(i => `
 const DELIVERIES = [
   {ico:"📦",h:"Livraison en 58 wilayas",p:"Via Yalidine Express sur l'ensemble du territoire national. Enlèvement à domicile ou bureau de dépôt selon votre préférence.",tag:"2–5 jours ouvrables"},
   {ico:"💰",h:"Règlement à la livraison",p:"Vous payez au moment où vous recevez votre commande, entre les mains du livreur. Aucune avance ni prélèvement préalable.",tag:"Le mode le plus utilisé"},
-  {ico:"↩️",h:"Retours & échanges",p:"Un soin qui ne vous correspond pas ? Contactez-nous dans les 48 heures suivant la réception. Échange, avoir ou remboursement selon votre préférence.",tag:"Service client sous 12h"},
+  {ico:"🔒",h:"Commandes sécurisées",p:"Vos données personnelles sont protégées et ne sont jamais partagées avec des tiers. Nous traitons chaque commande avec soin.",tag:"Confidentialité garantie"},
 ];
 document.getElementById('del-grid').innerHTML = DELIVERIES.map(d => `
 <div class="dcard fu">
@@ -1073,7 +1073,7 @@ function toast(msg, ico = '✦') {
 // ─── AUTH ───
 let currentUser = null;
 
-supabase.auth.onAuthStateChange((event, session) => {
+if (supabase) supabase.auth.onAuthStateChange((event, session) => {
   currentUser = session?.user || null;
   updateAccountBtn();
   if (currentUser) syncFavsFromDb();
