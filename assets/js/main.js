@@ -2,6 +2,63 @@
    NOURYA — JavaScript principal
    ═══════════════════════════════════════════════════════ */
 
+// ─── SUPABASE ───
+const SB_URL = 'https://wnwirmlvgjfzymixswsy.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indud2lybWx2Z2pmenltaXhzd3N5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NzcxMzksImV4cCI6MjA4OTQ1MzEzOX0.wxrbK6_ny7j3wI2l-bvIy9ljYqj_xbiyHncB5QJCnSc';
+const supabase = window.supabase.createClient(SB_URL, SB_KEY);
+
+// ─── SITE SETTINGS ───
+let siteSettings = {
+  whatsapp_number: '213XXXXXXXXX',
+  instagram_url: '#',
+  ccp_number: 'Numéro CCP non configuré',
+  cib_rib: 'RIB non configuré',
+  baridimob_number: 'Numéro BaridiMob non configuré',
+  admin_email: 'admin@nourya.dz',
+  delivery_info: 'Livraison incluse dans le prix. Délai: 3-7 jours ouvrables.',
+};
+
+async function loadSiteSettings() {
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/site_settings?select=key,value`, {
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+    });
+    if (res.ok) {
+      const rows = await res.json();
+      rows.forEach(r => { siteSettings[r.key] = r.value; });
+      document.querySelectorAll('a[href*="wa.me"]').forEach(a => {
+        a.href = `https://wa.me/${siteSettings.whatsapp_number}`;
+      });
+      document.querySelectorAll('a[href*="instagram"]').forEach(a => {
+        if (siteSettings.instagram_url) a.href = siteSettings.instagram_url;
+      });
+    }
+  } catch(e) {}
+}
+
+// ─── ANNOUNCEMENTS ───
+async function loadAnnouncements() {
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/announcements?active=eq.true&order=created_at.desc&limit=1`, {
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+    });
+    if (!res.ok) return;
+    const rows = await res.json();
+    if (!rows || !rows.length) return;
+    const a = rows[0];
+    const bar = document.getElementById('announcement-bar');
+    if (!bar) return;
+    const typeColors = { promo: 'var(--g)', info: 'rgba(196,164,92,.7)', alert: 'var(--rosed)' };
+    bar.innerHTML = `<div class="ann-bar" style="--ann-color:${typeColors[a.type]||typeColors.info}">
+      <span class="ann-ico">✦</span>
+      <span class="ann-title">${a.title}</span>
+      ${a.body ? `<span class="ann-body"> — ${a.body}</span>` : ''}
+      <button class="ann-close" onclick="document.getElementById('announcement-bar').style.display='none'" aria-label="Fermer">✕</button>
+    </div>`;
+    bar.style.display = 'block';
+  } catch(e) {}
+}
+
 // ─── LOADER ───
 window.addEventListener('load', () => {
   setTimeout(() => document.getElementById('loader').classList.add('gone'), 1800);
@@ -359,7 +416,7 @@ const FAQS = [
   {q:"Quel est le délai de livraison réel ?",a:"2 à 3 jours ouvrables pour Alger, Oran et Constantine. 3 à 5 jours pour les autres wilayas. Vous recevez un code de suivi dès l'expédition de votre colis."},
   {q:"Mes données personnelles sont-elles en sécurité ?",a:"Nous ne conservons aucune donnée bancaire. Vos coordonnées de livraison sont supprimées après 30 jours. Nous ne vendons ni ne partageons vos données. Jamais."},
   {q:"Les soins conviennent-ils aux peaux sensibles ?",a:"La grande majorité de nos formules sont adaptées aux peaux sensibles, précisément parce qu'elles contiennent peu d'ingrédients, tous naturels. Un test au pli du coude 24h avant la première utilisation reste une précaution raisonnable."},
-  {q:"Existe-t-il un programme de fidélité ?",a:"Oui. Chaque commande génère des points NOURYA (10 DA = 1 point, 100 points = 500 DA de réduction). Le parrainage offre 10% de remise à vous et à votre filleule. Demandez votre code directement sur WhatsApp."},
+  {q:"Vos produits ont-ils une certification bio ?",a:"Nos produits ne portent pas de label bio officiel, car les certifications coûtent cher et ne sont pas accessibles aux petits producteurs algériens avec lesquels nous travaillons. Ce qui compte pour nous : la traçabilité directe, les pratiques agricoles que nous vérifions sur place, et des formules sans ingrédient superflu. Nous préférons la transparence réelle à un label."},
 ];
 
 // ─── STATE ───
@@ -403,8 +460,50 @@ function getPrice(p) {
   return p.formats[selectedFormats[p.id] || 0].price;
 }
 
+// ─── SEARCH ───
+let searchQuery = '';
+
+function handleSearch(q) {
+  searchQuery = q.trim().toLowerCase();
+  const closeBtn = document.getElementById('search-close');
+  if (closeBtn) closeBtn.style.display = q ? 'flex' : 'none';
+  buildProds();
+  if (q && document.getElementById('boutique')) {
+    document.getElementById('boutique').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+function clearSearch() {
+  searchQuery = '';
+  const inp = document.getElementById('search-input');
+  if (inp) inp.value = '';
+  const closeBtn = document.getElementById('search-close');
+  if (closeBtn) closeBtn.style.display = 'none';
+  buildProds();
+}
+
+let searchOpen = false;
+function toggleSearch() {
+  searchOpen = !searchOpen;
+  const s = document.getElementById('nsearch');
+  if (s) {
+    s.style.opacity = searchOpen ? '1' : '0';
+    s.style.pointerEvents = searchOpen ? 'all' : 'none';
+    s.style.maxWidth = searchOpen ? '240px' : '0';
+    if (searchOpen) setTimeout(() => document.getElementById('search-input')?.focus(), 100);
+  }
+}
+
 function buildProds() {
-  const list = activeCat === 'tous' ? PRODUCTS : PRODUCTS.filter(p => p.cat === activeCat);
+  let list = activeCat === 'tous' ? PRODUCTS : PRODUCTS.filter(p => p.cat === activeCat);
+  if (searchQuery) {
+    list = list.filter(p =>
+      p.name.toLowerCase().includes(searchQuery) ||
+      p.ar?.toLowerCase().includes(searchQuery) ||
+      p.desc?.toLowerCase().includes(searchQuery) ||
+      p.tags?.some(t => t.toLowerCase().includes(searchQuery))
+    );
+  }
   const catLbl = { visage:'Visage', cheveux:'Cheveux', corps:'Corps & Hammam' };
   document.getElementById('pgrid').innerHTML = list.map(p => {
     const fi = selectedFormats[p.id] || 0;
@@ -555,8 +654,9 @@ document.getElementById('del-grid').innerHTML = DELIVERIES.map(d => `
 </div>`).join('');
 
 const PAYS = [
-  {ico:"💳",n:"Carte Dahabia / Edahabia",s:"Paiement sécurisé · Algérie Post"},
-  {ico:"📱",n:"BaridiMob",s:"Paiement mobile instantané"},
+  {ico:"💳",n:"CIB / Dahabia",s:"Paiement sécurisé · banques algériennes"},
+  {ico:"📱",n:"BaridiMob",s:"Paiement mobile Algérie Poste"},
+  {ico:"🏦",n:"Virement CCP",s:"Avec preuve via WhatsApp"},
   {ico:"🤝",n:"À la livraison",s:"Cash · le mode le plus répandu"},
 ];
 document.getElementById('pay-row').innerHTML = PAYS.map(m => `
@@ -765,13 +865,36 @@ function renderCart() {
 }
 
 // ─── FAVORITES ───
-function toggleFav(id) {
+async function toggleFav(id) {
   const idx = favs.indexOf(id);
-  if (idx > -1) { favs.splice(idx, 1); toast('Retiré de vos favoris.', '♡'); }
-  else { favs.push(id); toast('Ajouté à vos favoris.', '♥'); }
+  if (idx > -1) {
+    favs.splice(idx, 1);
+    toast('Retiré de vos favoris.', '♡');
+    if (currentUser) {
+      try {
+        const session = await supabase.auth.getSession();
+        await fetch(`${SB_URL}/rest/v1/favorites?user_id=eq.${currentUser.id}&product_id=eq.${id}`, {
+          method: 'DELETE',
+          headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + session.data.session?.access_token }
+        });
+      } catch(e) {}
+    }
+  } else {
+    favs.push(id);
+    toast('Ajouté à vos favoris.', '♥');
+    if (currentUser) {
+      try {
+        const session = await supabase.auth.getSession();
+        await fetch(`${SB_URL}/rest/v1/favorites`, {
+          method: 'POST',
+          headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + session.data.session?.access_token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+          body: JSON.stringify({ user_id: currentUser.id, product_id: String(id) })
+        });
+      } catch(e) {}
+    }
+  }
   const b = document.getElementById('fav-badge');
-  b.textContent = favs.length;
-  b.style.display = favs.length ? 'flex' : 'none';
+  if (b) { b.textContent = favs.length; b.style.display = favs.length ? 'flex' : 'none'; }
   buildProds();
 }
 
@@ -792,17 +915,18 @@ function openCheckout() {
       <div class="ord-sum">
         <div class="ord-sum-t">Récapitulatif</div>
         ${cart.map(i => `<div class="ord-row"><span>${i.name} × ${i.qty}</span><span style="color:var(--g)">${(i.price * i.qty).toLocaleString()} DA</span></div>`).join('')}
-        <div class="ord-row" style="opacity:.4"><span>Livraison</span><span>Calculée selon wilaya</span></div>
+        <div class="ord-row" style="opacity:.4"><span>Livraison</span><span>Livraison incluse dans le prix</span></div>
         <div class="ord-total"><span>Total</span><span>${total.toLocaleString()} DA</span></div>
       </div>
       <div class="frow">
-        <div class="fgrp"><label class="flbl" for="co-fn">Prénom</label><input class="fin" id="co-fn" placeholder="Votre prénom" required/></div>
-        <div class="fgrp"><label class="flbl" for="co-ln">Nom</label><input class="fin" id="co-ln" placeholder="Votre nom" required/></div>
+        <div class="fgrp"><label class="flbl" for="co-fn">Prénom *</label><input class="fin" id="co-fn" placeholder="Votre prénom" required/></div>
+        <div class="fgrp"><label class="flbl" for="co-ln">Nom</label><input class="fin" id="co-ln" placeholder="Votre nom"/></div>
       </div>
-      <div class="fgrp"><label class="flbl" for="co-ph">Téléphone</label><input class="fin" id="co-ph" type="tel" placeholder="0XXXXXXXXX" required/></div>
-      <div class="fgrp"><label class="flbl" for="co-ad">Adresse complète</label><input class="fin" id="co-ad" placeholder="Numéro, rue, cité, quartier..." required/></div>
+      <div class="fgrp"><label class="flbl" for="co-email">Email (optionnel)</label><input class="fin" id="co-email" type="email" placeholder="votre@email.com"/></div>
+      <div class="fgrp"><label class="flbl" for="co-ph">Téléphone *</label><input class="fin" id="co-ph" type="tel" placeholder="0XXXXXXXXX" required/></div>
+      <div class="fgrp"><label class="flbl" for="co-ad">Adresse complète *</label><input class="fin" id="co-ad" placeholder="Numéro, rue, cité, quartier..." required/></div>
       <div class="frow">
-        <div class="fgrp"><label class="flbl" for="co-wi">Wilaya</label>
+        <div class="fgrp"><label class="flbl" for="co-wi">Wilaya *</label>
           <select class="fsel" id="co-wi"><option value="">Sélectionner...</option>${wilayas.map(w => `<option>${w}</option>`).join('')}</select>
         </div>
         <div class="fgrp"><label class="flbl" for="co-cp">Code postal</label><input class="fin" id="co-cp" placeholder="16000"/></div>
@@ -810,9 +934,10 @@ function openCheckout() {
       <div class="fgrp">
         <label class="flbl">Mode de paiement</label>
         <div class="pay-opts">
-          <label class="pay-opt sel" id="po-l" onclick="selPay('l')"><input type="radio" name="pay" value="liv" checked/><span style="font-size:17px">🤝</span><span class="pay-opt-lbl">Paiement à la livraison (cash)</span></label>
-          <label class="pay-opt" id="po-d" onclick="selPay('d')"><input type="radio" name="pay" value="dah"/><span style="font-size:17px">💳</span><span class="pay-opt-lbl">Carte Dahabia / Edahabia</span></label>
-          <label class="pay-opt" id="po-b" onclick="selPay('b')"><input type="radio" name="pay" value="bar"/><span style="font-size:17px">📱</span><span class="pay-opt-lbl">BaridiMob</span></label>
+          <label class="pay-opt sel" id="po-l" onclick="selPay('l')"><input type="radio" name="pay" value="l" checked/><span style="font-size:17px">🤝</span><span class="pay-opt-lbl">Paiement à la livraison (cash)</span></label>
+          <label class="pay-opt" id="po-d" onclick="selPay('d')"><input type="radio" name="pay" value="d"/><span style="font-size:17px">💳</span><span class="pay-opt-lbl">CIB / Dahabia</span></label>
+          <label class="pay-opt" id="po-b" onclick="selPay('b')"><input type="radio" name="pay" value="b"/><span style="font-size:17px">📱</span><span class="pay-opt-lbl">BaridiMob</span></label>
+          <label class="pay-opt" id="po-c" onclick="selPay('c')"><input type="radio" name="pay" value="c"/><span style="font-size:17px">🏦</span><span class="pay-opt-lbl">Virement CCP</span></label>
         </div>
       </div>
       <div style="display:flex;gap:9px;align-items:flex-start;margin-top:14px;padding:12px 14px;background:rgba(233,197,192,.05);border:1px solid rgba(212,154,146,.14);">
@@ -826,7 +951,7 @@ function openCheckout() {
 }
 
 function selPay(t) {
-  ['l','d','b'].forEach(x => {
+  ['l','d','b','c'].forEach(x => {
     const e = document.getElementById('po-' + x);
     if (e) e.classList.toggle('sel', x === t);
   });
@@ -837,19 +962,88 @@ function closeCheckout() {
   document.body.style.overflow = '';
 }
 
-function submitOrder() {
-  const fn = document.getElementById('co-fn')?.value;
-  const ph = document.getElementById('co-ph')?.value;
-  const ad = document.getElementById('co-ad')?.value;
+async function submitOrder() {
+  const fn = document.getElementById('co-fn')?.value?.trim();
+  const ln = document.getElementById('co-ln')?.value?.trim();
+  const email = document.getElementById('co-email')?.value?.trim();
+  const ph = document.getElementById('co-ph')?.value?.trim();
+  const ad = document.getElementById('co-ad')?.value?.trim();
   const wi = document.getElementById('co-wi')?.value;
   if (!fn || !ph || !ad || !wi) { toast('Veuillez remplir tous les champs obligatoires.', '⚠'); return; }
-  const num = 'NOURYA-' + Math.random().toString(36).substr(2, 6).toUpperCase();
+
+  const payMap = { 'l': 'Paiement à la livraison', 'd': 'CIB / Dahabia', 'b': 'BaridiMob', 'c': 'Virement CCP' };
+  const activePayEl = document.querySelector('.pay-opt.sel input');
+  const payCode = activePayEl?.value || 'l';
+  const payMethod = payMap[payCode] || 'Paiement à la livraison';
+
+  const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const num = 'NOURYA-' + Date.now().toString(36).toUpperCase().slice(-6);
+
+  const orderData = {
+    order_number: num,
+    user_id: currentUser?.id || null,
+    customer_name: fn + (ln ? ' ' + ln : ''),
+    email: email || null,
+    phone: ph,
+    address: ad,
+    wilaya: wi,
+    items: cart.map(i => ({ name: i.name, format: i.format, qty: i.qty, price: i.price })),
+    total,
+    payment_method: payMethod,
+    payment_status: 'pending',
+    delivery_status: 'pending',
+  };
+
+  const btn = document.querySelector('.submit-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Enregistrement...'; }
+
+  try {
+    await fetch(`${SB_URL}/rest/v1/orders`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify(orderData)
+    });
+
+    if (email) {
+      fetch(`${SB_URL}/functions/v1/send-order-email`, {
+        method: 'POST',
+        headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order: { ...orderData, customer_name: orderData.customer_name }, customerEmail: email, adminEmail: siteSettings.admin_email })
+      }).catch(() => {});
+    }
+  } catch(e) {}
+
+  let payInfo = '';
+  if (payCode === 'c') {
+    payInfo = `<div class="pay-instructions">
+      <div class="pi-title">Instructions de virement CCP</div>
+      <div class="pi-account">CCP : <strong>${siteSettings.ccp_number}</strong></div>
+      <p>Effectuez le virement du montant exact (<strong>${total.toLocaleString()} DA</strong>), puis envoyez la photo du reçu via WhatsApp au numéro ci-dessous.</p>
+      <a href="https://wa.me/${siteSettings.whatsapp_number}?text=Bonjour, voici mon reçu CCP pour la commande ${num}" target="_blank" class="btn-g" style="display:inline-flex;margin-top:12px">WhatsApp →</a>
+    </div>`;
+  } else if (payCode === 'd') {
+    payInfo = `<div class="pay-instructions">
+      <div class="pi-title">Paiement par CIB / Dahabia</div>
+      <div class="pi-account">RIB : <strong>${siteSettings.cib_rib}</strong></div>
+      <p>Effectuez le paiement du montant exact (<strong>${total.toLocaleString()} DA</strong>), puis envoyez la preuve de paiement via WhatsApp.</p>
+      <a href="https://wa.me/${siteSettings.whatsapp_number}?text=Bonjour, voici ma preuve de paiement CIB pour la commande ${num}" target="_blank" class="btn-g" style="display:inline-flex;margin-top:12px">WhatsApp →</a>
+    </div>`;
+  } else if (payCode === 'b') {
+    payInfo = `<div class="pay-instructions">
+      <div class="pi-title">Paiement BaridiMob</div>
+      <div class="pi-account">Numéro : <strong>${siteSettings.baridimob_number}</strong></div>
+      <p>Envoyez <strong>${total.toLocaleString()} DA</strong> sur ce numéro BaridiMob, puis envoyez la capture d'écran via WhatsApp.</p>
+      <a href="https://wa.me/${siteSettings.whatsapp_number}?text=Bonjour, voici ma confirmation BaridiMob pour la commande ${num}" target="_blank" class="btn-g" style="display:inline-flex;margin-top:12px">WhatsApp →</a>
+    </div>`;
+  }
+
   document.getElementById('checkout-modal').innerHTML = `
     <div class="success-wrap">
       <div class="success-ico">🌿</div>
       <div class="success-h">Commande confirmée</div>
       <div class="order-num">${num}</div>
-      <div class="success-p">Merci, ${fn}. Votre commande a bien été enregistrée. Vous recevrez une confirmation par SMS dans les prochaines minutes.<br/><br/>Votre colis sera expédié sous 24 heures et livré sous 2 à 5 jours ouvrables selon votre wilaya.</div>
+      <div class="success-p">Merci, ${fn}. Votre commande a bien été enregistrée.${email ? ' Une confirmation vous a été envoyée par email.' : ''}<br/><br/>Votre colis sera expédié sous 24 heures et livré sous 2 à 5 jours ouvrables selon votre wilaya.</div>
+      ${payInfo}
       <button class="btn-g" onclick="closeCheckout();cart=[];updateBadge();renderCart();saveCart();">Retour à la boutique</button>
     </div>`;
   cart = []; updateBadge(); renderCart(); saveCart();
@@ -876,7 +1070,270 @@ function toast(msg, ico = '✦') {
   el._t = setTimeout(() => el.classList.remove('on'), 3600);
 }
 
-function showAccount() { toast('Espace personnel — disponible prochainement.', '◈'); }
+// ─── AUTH ───
+let currentUser = null;
+
+supabase.auth.onAuthStateChange((event, session) => {
+  currentUser = session?.user || null;
+  updateAccountBtn();
+  if (currentUser) syncFavsFromDb();
+});
+
+function updateAccountBtn() {
+  const btn = document.querySelector('.nbtn');
+  if (!btn) return;
+  if (currentUser) {
+    const name = currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'Mon espace';
+    btn.textContent = name.split(' ')[0];
+  } else {
+    btn.textContent = 'Mon espace';
+  }
+}
+
+function showAccount() {
+  if (!currentUser) {
+    openAuthModal('login');
+  } else {
+    openAccountModal();
+  }
+}
+
+function openAuthModal(mode = 'login') {
+  const m = document.getElementById('auth-modal');
+  const isLogin = mode === 'login';
+  m.innerHTML = `
+    <button class="mcls" onclick="closeAuthModal()" aria-label="Fermer">✕</button>
+    <div class="modal-hd"><div class="modal-title">${isLogin ? 'Se connecter' : 'Créer un compte'}</div></div>
+    <div class="modal-body" style="padding:24px 28px">
+      ${!isLogin ? `<div class="fgrp"><label class="flbl" for="auth-name">Prénom et nom</label><input class="fin" id="auth-name" placeholder="Votre prénom et nom" autocomplete="name"/></div>` : ''}
+      <div class="fgrp"><label class="flbl" for="auth-email">Email</label><input class="fin" id="auth-email" type="email" placeholder="votre@email.com" autocomplete="email"/></div>
+      <div class="fgrp"><label class="flbl" for="auth-pwd">Mot de passe</label><input class="fin" id="auth-pwd" type="password" placeholder="Minimum 6 caractères" autocomplete="${isLogin ? 'current-password' : 'new-password'}"/></div>
+      <div class="auth-err" id="auth-err" style="display:none;color:var(--rosed);font-size:12px;margin-bottom:12px;"></div>
+      <button class="submit-btn" id="auth-submit-btn" onclick="${isLogin ? 'doLogin()' : 'doRegister()'}">
+        ${isLogin ? 'Se connecter' : "Créer mon compte"}
+      </button>
+      <div style="text-align:center;margin-top:16px;font-size:12px;color:var(--c);opacity:.5">
+        ${isLogin ?
+          `Pas encore de compte ? <button onclick="openAuthModal('register')" style="background:none;border:none;color:var(--g);font-size:12px;text-decoration:underline">S'inscrire</button>` :
+          `Déjà un compte ? <button onclick="openAuthModal('login')" style="background:none;border:none;color:var(--g);font-size:12px;text-decoration:underline">Se connecter</button>`
+        }
+      </div>
+    </div>`;
+  document.getElementById('auth-ov').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  setTimeout(() => document.getElementById('auth-email')?.focus(), 100);
+}
+
+function closeAuthModal() {
+  document.getElementById('auth-ov').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+async function doLogin() {
+  const email = document.getElementById('auth-email')?.value?.trim();
+  const pwd = document.getElementById('auth-pwd')?.value;
+  const btn = document.getElementById('auth-submit-btn');
+  if (!email || !pwd) { showAuthErr('Veuillez remplir tous les champs.'); return; }
+  btn.disabled = true; btn.textContent = 'Connexion...';
+  const { error } = await supabase.auth.signInWithPassword({ email, password: pwd });
+  if (error) { showAuthErr('Email ou mot de passe incorrect.'); btn.disabled = false; btn.textContent = 'Se connecter'; return; }
+  closeAuthModal();
+  toast('Bienvenue ! Vous êtes connecté.', '✦');
+}
+
+async function doRegister() {
+  const name = document.getElementById('auth-name')?.value?.trim();
+  const email = document.getElementById('auth-email')?.value?.trim();
+  const pwd = document.getElementById('auth-pwd')?.value;
+  const btn = document.getElementById('auth-submit-btn');
+  if (!name || !email || !pwd) { showAuthErr('Veuillez remplir tous les champs.'); return; }
+  if (pwd.length < 6) { showAuthErr('Le mot de passe doit contenir au moins 6 caractères.'); return; }
+  btn.disabled = true; btn.textContent = 'Création...';
+  const { error } = await supabase.auth.signUp({ email, password: pwd, options: { data: { full_name: name } } });
+  if (error) { showAuthErr(error.message || 'Erreur lors de la création du compte.'); btn.disabled = false; btn.textContent = 'Créer mon compte'; return; }
+  closeAuthModal();
+  toast('Compte créé ! Vérifiez votre email pour confirmer.', '✦');
+}
+
+function showAuthErr(msg) {
+  const e = document.getElementById('auth-err');
+  if (e) { e.textContent = msg; e.style.display = 'block'; }
+}
+
+document.addEventListener('click', e => {
+  if (e.target === document.getElementById('auth-ov')) closeAuthModal();
+  if (e.target === document.getElementById('account-ov')) closeAccountModal();
+});
+
+// ─── ACCOUNT MODAL ───
+async function openAccountModal() {
+  const m = document.getElementById('account-modal');
+  m.innerHTML = `
+    <button class="mcls" onclick="closeAccountModal()" aria-label="Fermer">✕</button>
+    <div class="modal-hd">
+      <div class="modal-title">Mon espace</div>
+      <div style="font-size:11px;opacity:.4;font-family:var(--fb);letter-spacing:.12em">${currentUser?.email}</div>
+    </div>
+    <div class="acc-tabs">
+      <button class="acc-tab on" onclick="switchAccTab('orders', this)">Commandes</button>
+      <button class="acc-tab" onclick="switchAccTab('favs', this)">Favoris</button>
+      <button class="acc-tab" onclick="switchAccTab('profile', this)">Profil</button>
+    </div>
+    <div class="modal-body" id="acc-content" style="padding:24px 28px">
+      <div class="loading-s" style="text-align:center;padding:40px;opacity:.4">Chargement...</div>
+    </div>
+    <div style="padding:16px 28px;border-top:1px solid rgba(196,164,92,.1);text-align:right">
+      <button onclick="doLogout()" style="background:none;border:1px solid rgba(190,123,116,.3);color:var(--rosed);padding:8px 20px;font-family:var(--fb);font-size:10px;letter-spacing:.14em;text-transform:uppercase">Déconnexion</button>
+    </div>`;
+  document.getElementById('account-ov').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  loadAccTab('orders');
+}
+
+function closeAccountModal() {
+  document.getElementById('account-ov').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function switchAccTab(tab, btn) {
+  document.querySelectorAll('.acc-tab').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  loadAccTab(tab);
+}
+
+async function loadAccTab(tab) {
+  const content = document.getElementById('acc-content');
+  if (!content) return;
+  content.innerHTML = `<div style="text-align:center;padding:40px;opacity:.4;font-family:var(--ff);font-size:18px">Chargement...</div>`;
+
+  if (tab === 'orders') {
+    try {
+      const res = await fetch(`${SB_URL}/rest/v1/orders?user_id=eq.${currentUser.id}&order=created_at.desc`, {
+        headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + (await supabase.auth.getSession()).data.session?.access_token }
+      });
+      const orders = res.ok ? await res.json() : [];
+      if (!orders || !orders.length) {
+        content.innerHTML = `<div style="text-align:center;padding:60px 20px;font-family:var(--ff);font-size:20px;opacity:.3">Aucune commande pour l'instant.</div>`;
+        return;
+      }
+      const statusColors = { pending:'rgba(196,164,92,.6)', processing:'rgba(196,164,92,.9)', shipped:'#6de89a', delivered:'#27ae60', cancelled:'var(--rosed)' };
+      const statusLabels = { pending:'En attente', processing:'En traitement', shipped:'Expédiée', delivered:'Livrée', cancelled:'Annulée' };
+      const payLabels = { pending:'En attente', confirmed:'Confirmé', failed:'Échoué' };
+      content.innerHTML = orders.map(o => `
+        <div class="acc-order-row" onclick="toggleOrderDetail('ord-${o.id}')">
+          <div>
+            <div style="font-family:var(--ff);font-size:16px;color:var(--c)">${o.order_number}</div>
+            <div style="font-size:11px;opacity:.4;margin-top:2px">${new Date(o.created_at).toLocaleDateString('fr-DZ', {day:'2-digit',month:'long',year:'numeric'})}</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-family:var(--ff);font-size:18px;color:var(--g)">${o.total?.toLocaleString()} DA</div>
+            <span style="font-size:10px;letter-spacing:.1em;color:${statusColors[o.delivery_status]||'rgba(196,164,92,.6)'}">${statusLabels[o.delivery_status]||o.delivery_status}</span>
+          </div>
+        </div>
+        <div class="acc-order-detail" id="ord-${o.id}" style="display:none">
+          <div style="font-size:12px;opacity:.5;margin-bottom:10px">Paiement : ${payLabels[o.payment_status]||o.payment_status} · ${o.payment_method}</div>
+          ${(o.items||[]).map(i=>`<div style="display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px solid rgba(196,164,92,.07)"><span>${i.name} × ${i.qty}</span><span style="color:var(--g)">${(i.price*i.qty).toLocaleString()} DA</span></div>`).join('')}
+          <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:600;margin-top:10px;padding-top:10px;border-top:1px solid rgba(196,164,92,.12)"><span>Total</span><span style="color:var(--g)">${o.total?.toLocaleString()} DA</span></div>
+          <div style="font-size:11px;opacity:.35;margin-top:8px">Livraison : ${o.wilaya} · ${o.address}</div>
+        </div>
+      `).join('');
+    } catch(e) {
+      content.innerHTML = `<div style="text-align:center;padding:40px;color:var(--rosed);font-size:13px">Erreur lors du chargement des commandes.</div>`;
+    }
+  } else if (tab === 'favs') {
+    const favProds = PRODUCTS.filter(p => favs.includes(p.id));
+    if (!favProds.length) {
+      content.innerHTML = `<div style="text-align:center;padding:60px;font-family:var(--ff);font-size:20px;opacity:.3">Aucun favori pour l'instant.</div>`;
+      return;
+    }
+    content.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px">` +
+      favProds.map(p => `
+        <div style="border:1px solid rgba(196,164,92,.12);padding:12px;background:var(--n2)">
+          <img src="${p.img}" alt="${p.name}" style="width:100%;height:120px;object-fit:cover;margin-bottom:10px" onerror="this.style.display='none'"/>
+          <div style="font-family:var(--ff);font-size:15px;margin-bottom:4px">${p.name}</div>
+          <div style="font-size:11px;color:var(--g)">${p.formats[0].price.toLocaleString()} DA</div>
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <button onclick="addToCart(${p.id});closeAccountModal()" style="flex:1;background:var(--g);color:var(--n1);border:none;padding:8px;font-size:9px;letter-spacing:.12em;text-transform:uppercase;font-family:var(--fb)">+ Panier</button>
+            <button onclick="toggleFav(${p.id});loadAccTab('favs')" style="background:none;border:1px solid rgba(190,123,116,.3);color:var(--rosed);padding:8px 10px;font-size:12px">♥</button>
+          </div>
+        </div>`).join('') + `</div>`;
+  } else if (tab === 'profile') {
+    let profile = {};
+    try {
+      const session = await supabase.auth.getSession();
+      const res = await fetch(`${SB_URL}/rest/v1/profiles?id=eq.${currentUser.id}`, {
+        headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + session.data.session?.access_token }
+      });
+      if (res.ok) { const rows = await res.json(); if (rows[0]) profile = rows[0]; }
+    } catch(e) {}
+    content.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div class="fgrp" style="grid-column:1/-1">
+          <label class="flbl">Nom complet</label>
+          <input class="fin" id="prof-name" value="${profile.full_name || currentUser?.user_metadata?.full_name || ''}"/>
+        </div>
+        <div class="fgrp">
+          <label class="flbl">Email</label>
+          <input class="fin" value="${currentUser?.email||''}" disabled style="opacity:.5"/>
+        </div>
+        <div class="fgrp">
+          <label class="flbl">Téléphone</label>
+          <input class="fin" id="prof-phone" value="${profile.phone||''}" placeholder="0XXXXXXXXX"/>
+        </div>
+        <div class="fgrp" style="grid-column:1/-1">
+          <label class="flbl">Wilaya</label>
+          <input class="fin" id="prof-wilaya" value="${profile.wilaya||''}" placeholder="ex: Alger"/>
+        </div>
+      </div>
+      <button class="submit-btn" style="margin-top:20px" onclick="saveProfile()">Enregistrer</button>`;
+  }
+}
+
+function toggleOrderDetail(id) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+async function saveProfile() {
+  const session = await supabase.auth.getSession();
+  const token = session.data.session?.access_token;
+  const data = {
+    full_name: document.getElementById('prof-name')?.value?.trim(),
+    phone: document.getElementById('prof-phone')?.value?.trim(),
+    wilaya: document.getElementById('prof-wilaya')?.value?.trim(),
+  };
+  try {
+    await fetch(`${SB_URL}/rest/v1/profiles?id=eq.${currentUser.id}`, {
+      method: 'PATCH',
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify(data)
+    });
+    toast('Profil mis à jour.', '✦');
+  } catch(e) { toast('Erreur lors de la mise à jour.', '⚠'); }
+}
+
+async function doLogout() {
+  await supabase.auth.signOut();
+  closeAccountModal();
+  toast('Déconnecté. À bientôt !', '✦');
+}
+
+async function syncFavsFromDb() {
+  if (!currentUser) return;
+  try {
+    const session = await supabase.auth.getSession();
+    const res = await fetch(`${SB_URL}/rest/v1/favorites?user_id=eq.${currentUser.id}`, {
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + session.data.session?.access_token }
+    });
+    if (res.ok) {
+      const rows = await res.json();
+      rows.forEach(r => { const id = parseInt(r.product_id); if (!favs.includes(id)) favs.push(id); });
+      buildProds();
+      const b = document.getElementById('fav-badge');
+      if (b) { b.textContent = favs.length; b.style.display = favs.length ? 'flex' : 'none'; }
+    }
+  } catch(e) {}
+}
 
 // ─── MENU MOBILE ───
 let mobileNavOpen = false;
@@ -1024,16 +1481,13 @@ function initHeroShowcase(){
 }
 
 // ─── SUPABASE — chargement des produits admin ───
-const _SB_URL = 'https://wnwirmlvgjfzymixswsy.supabase.co';
-const _SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indud2lybWx2Z2pmenltaXhzd3N5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NzcxMzksImV4cCI6MjA4OTQ1MzEzOX0.wxrbK6_ny7j3wI2l-bvIy9ljYqj_xbiyHncB5QJCnSc';
-
 async function loadAdminProducts(){
   try{
     const [hiddenRes, prodRes] = await Promise.all([
-      fetch(`${_SB_URL}/rest/v1/nourya_hidden_products?select=product_id`,
-        { headers:{ 'apikey':_SB_KEY, 'Authorization':'Bearer '+_SB_KEY } }),
-      fetch(`${_SB_URL}/rest/v1/nourya_products?visible=eq.true&order=created_at.asc&select=*`,
-        { headers:{ 'apikey':_SB_KEY, 'Authorization':'Bearer '+_SB_KEY } })
+      fetch(`${SB_URL}/rest/v1/nourya_hidden_products?select=product_id`,
+        { headers:{ 'apikey':SB_KEY, 'Authorization':'Bearer '+SB_KEY } }),
+      fetch(`${SB_URL}/rest/v1/nourya_products?visible=eq.true&order=created_at.asc&select=*`,
+        { headers:{ 'apikey':SB_KEY, 'Authorization':'Bearer '+SB_KEY } })
     ]);
 
     // Apply hidden IDs — splice static products out of PRODUCTS
@@ -1097,3 +1551,5 @@ initHeroShowcase();
 renderCart();
 updateBadge();
 loadAdminProducts();
+loadSiteSettings();
+loadAnnouncements();

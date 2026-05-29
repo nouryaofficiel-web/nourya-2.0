@@ -65,6 +65,7 @@
   <div class="loader-bar"><div class="loader-bar-fill"></div></div>
 </div>
 
+<div id="announcement-bar" style="display:none"></div>
 
 <!-- BUBBLES -->
 <div class="bubbles" id="bubbles"></div>
@@ -87,6 +88,16 @@
 <div class="overlay" id="checkout-ov"><div class="modal" id="checkout-modal" style="max-width:580px"></div></div>
 <div class="overlay" id="detail-ov" onclick="if(event.target===this)closeDetail()"><div class="modal" id="detail-modal" style="max-width:680px"></div></div>
 
+<!-- AUTH MODAL -->
+<div class="overlay" id="auth-ov">
+  <div class="modal" id="auth-modal" style="max-width:440px"></div>
+</div>
+
+<!-- ACCOUNT MODAL -->
+<div class="overlay" id="account-ov">
+  <div class="modal" id="account-modal" style="max-width:700px;max-height:90vh;overflow-y:auto"></div>
+</div>
+
 <!-- NAV -->
 <nav id="nav">
   <a class="nlogo" href="#accueil"><span class="nlogo-w">NOURYA</span><span class="nlogo-a">نورية</span></a>
@@ -98,6 +109,11 @@
     <a href="#ingredients">Ingrédients</a>
     <a href="#histoire">La marque</a>
   </div>
+  <div class="nsearch" id="nsearch">
+    <input class="nsearch-in" id="search-input" type="text" placeholder="Rechercher un soin..." autocomplete="off" oninput="handleSearch(this.value)"/>
+    <button class="nsearch-close" onclick="clearSearch()" style="display:none" id="search-close">✕</button>
+  </div>
+  <button class="nico nsearch-toggle" onclick="toggleSearch()" title="Rechercher" aria-label="Rechercher">🔍</button>
   <div class="nact">
     <button class="nico" onclick="showFav()" title="Favoris">♡<span class="nbadge" id="fav-badge" style="display:none">0</span></button>
     <button class="nico" onclick="toggleCart()" title="Panier">◈<span class="nbadge" id="cart-badge">0</span></button>
@@ -290,7 +306,7 @@
       <div class="faq-contact-box">
         <div class="faq-contact-lbl">Nous écrire</div>
         <div class="faq-contact-txt">Une question sur votre type de peau, un doute sur un ingrédient, un problème de commande — nous répondons personnellement, sous 12 heures.</div>
-        <a href="https://wa.me/213XXXXXXXXX" target="_blank" class="btn-g" style="font-size:10px;padding:11px 22px">WhatsApp &rsaquo;</a>
+        <a href="https://wa.me/213XXXXXXXXX" target="_blank" id="faq-whatsapp-btn" class="btn-g" style="font-size:10px;padding:11px 22px">WhatsApp &rsaquo;</a>
       </div>
     </div>
     <div class="faq-list" id="faq-list"></div>
@@ -371,6 +387,7 @@
     <div class="flegal"><a href="#">Confidentialité</a><a href="#">CGV</a><a href="#">Mentions légales</a></div>
   </div>
 </footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/js/main.js" defer></script>
 </body>
 </html>

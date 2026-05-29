@@ -1232,3 +1232,96 @@ footer{background:var(--n1);border-top:1px solid rgba(196,164,92,.1);padding:64p
   .fu,.fi-a,.fls{opacity:1;transform:none;}
   #scroll-progress{transition:none;}
 }
+
+/* ─── ANNOUNCEMENT BAR ─── */
+.ann-bar {
+  background: linear-gradient(90deg, rgba(10,5,0,.96), rgba(20,10,0,.97));
+  border-bottom: 1px solid var(--ann-color, var(--g));
+  padding: 10px 6vw;
+  display: flex; align-items: center; gap: 12px;
+  font-family: var(--fb); font-size: 12px; color: var(--c);
+  position: relative; z-index: calc(var(--z-nav) - 1);
+}
+.ann-ico { color: var(--ann-color, var(--g)); font-size: 10px; }
+.ann-title { font-weight: 500; color: var(--ann-color, var(--g)); letter-spacing: .06em; }
+.ann-body { opacity: .75; }
+.ann-close {
+  position: absolute; right: 24px;
+  background: none; border: none; color: var(--c); opacity: .4; font-size: 14px;
+  transition: opacity .2s;
+}
+.ann-close:hover { opacity: 1; }
+
+/* ─── SEARCH ─── */
+.nsearch {
+  display: flex; align-items: center; gap: 8px;
+  max-width: 0; overflow: hidden; opacity: 0; pointer-events: none;
+  transition: max-width .35s var(--ease), opacity .3s;
+}
+.nsearch-in {
+  background: rgba(196,164,92,.08); border: 1px solid rgba(196,164,92,.2);
+  color: var(--c); padding: 7px 12px; font-family: var(--fb); font-size: 12px;
+  outline: none; width: 200px;
+  transition: border-color .2s;
+}
+nav.solid .nsearch-in { background: rgba(26,12,0,.08); color: var(--txt); }
+.nsearch-in:focus { border-color: var(--g); }
+.nsearch-in::placeholder { color: rgba(196,164,92,.4); }
+.nsearch-close {
+  background: none; border: none; color: var(--c); opacity: .5; font-size: 13px;
+  transition: opacity .2s;
+}
+.nsearch-close:hover { opacity: 1; }
+
+/* ─── AUTH TABS / ACCOUNT ─── */
+.acc-tabs {
+  display: flex; gap: 0; border-bottom: 1px solid rgba(196,164,92,.12);
+  padding: 0 28px;
+}
+.acc-tab {
+  background: none; border: none; border-bottom: 2px solid transparent;
+  color: var(--c); opacity: .5; padding: 14px 18px;
+  font-family: var(--fb); font-size: 10px; font-weight: 500;
+  letter-spacing: .18em; text-transform: uppercase;
+  transition: all .2s; margin-bottom: -1px;
+}
+.acc-tab:hover { opacity: .8; }
+.acc-tab.on { opacity: 1; border-bottom-color: var(--g); color: var(--g); }
+
+.acc-order-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px 0; border-bottom: 1px solid rgba(196,164,92,.08);
+  transition: opacity .2s;
+}
+.acc-order-row:hover { opacity: .8; }
+.acc-order-detail {
+  padding: 14px 0; border-bottom: 1px solid rgba(196,164,92,.1);
+  background: rgba(196,164,92,.03); padding: 14px;
+}
+
+/* ─── PAYMENT INSTRUCTIONS ─── */
+.pay-instructions {
+  background: rgba(196,164,92,.06); border: 1px solid rgba(196,164,92,.18);
+  padding: 20px; margin-top: 16px; margin-bottom: 16px;
+}
+.pi-title {
+  font-family: var(--ff); font-size: 17px; color: var(--g); margin-bottom: 10px;
+}
+.pi-account {
+  font-size: 14px; color: var(--c); margin-bottom: 10px; letter-spacing: .04em;
+}
+.pay-instructions p {
+  font-size: 13px; color: var(--c); opacity: .7; line-height: 1.6;
+}
+
+/* ─── MOBILE HERO FIX ─── */
+@media (max-width: 600px) {
+  .hero-right { display: block !important; margin-top: 32px; }
+  .hero-inner { flex-direction: column; padding-top: 90px; gap: 0; }
+  .hero-showcase { width: 100%; height: 300px; min-height: 300px; }
+  .hero-stats { gap: 12px; flex-wrap: wrap; }
+  .cart-drw { width: 100vw !important; max-width: 100vw !important; right: 0 !important; }
+}
+
+/* ─── ARIA LIVE ─── */
+#toast { }  /* existing, just ensure aria-live is in HTML */
