@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>NOURYA — نورية · Soins Naturels Algériens</title>
+
+<!-- SEO -->
+<meta name="description" content="NOURYA — Soins naturels artisanaux algériens. Huiles précieuses, masques et rituels hammam à base d'ingrédients traçables du Maghreb. Livraison dans les 58 wilayas d'Algérie."/>
+<meta name="keywords" content="soins naturels algérie, huile figue de barbarie, ghassoul, habba sawda, hammam, cosmétiques naturels algérie, nourya"/>
+<meta name="robots" content="index, follow"/>
+<meta name="author" content="NOURYA"/>
+<link rel="canonical" href="https://nourya.dz/"/>
+
+<!-- Open Graph (réseaux sociaux) -->
+<meta property="og:type" content="website"/>
+<meta property="og:url" content="https://nourya.dz/"/>
+<meta property="og:title" content="NOURYA — Soins Naturels Algériens"/>
+<meta property="og:description" content="Huiles précieuses, masques et rituels hammam artisanaux. Ingrédients traçables du Maghreb. Livraison dans les 58 wilayas."/>
+<meta property="og:image" content="https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=1200&q=80"/>
+<meta property="og:locale" content="fr_DZ"/>
+<meta property="og:site_name" content="NOURYA"/>
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="NOURYA — Soins Naturels Algériens"/>
+<meta name="twitter:description" content="Huiles précieuses, masques et rituels hammam artisanaux. Ingrédients traçables du Maghreb."/>
+<meta name="twitter:image" content="https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=1200&q=80"/>
+
+<!-- Schema.org (Google comprend vos produits) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "OnlineStore",
+  "name": "NOURYA",
+  "alternateName": "نورية",
+  "description": "Soins naturels artisanaux algériens. Huiles précieuses, masques et rituels hammam à base d'ingrédients traçables du Maghreb.",
+  "url": "https://nourya.dz",
+  "logo": "https://nourya.dz/assets/logo.png",
+  "areaServed": "DZ",
+  "availableLanguage": ["French", "Arabic"],
+  "contactPoint": {
+    "@type": "ContactPoint",
+    "contactType": "customer service",
+    "availableLanguage": ["French", "Arabic"]
+  },
+  "sameAs": []
+}
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Jost:wght@300;400;500;600&family=Noto+Naskh+Arabic:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="assets/css/styles.css"/>
+</head>
+<body>
+
+<!-- SCROLL PROGRESS -->
+<div id="scroll-progress"></div>
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="loader-logo">NOURYA</div>
+  <div class="loader-ar">نورية</div>
+  <div class="loader-bar"><div class="loader-bar-fill"></div></div>
+</div>
+
+
+<!-- BUBBLES -->
+<div class="bubbles" id="bubbles"></div>
+
+<!-- PETALS -->
+<div class="petal-field" id="petal-field"></div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"><span class="toast-ico" id="toast-ico">✦</span><span class="toast-t" id="toast-t"></span></div>
+
+<!-- CART DRAWER -->
+<div class="overlay" id="cart-ov" onclick="if(event.target===this)toggleCart()"></div>
+<div class="cart-drw" id="cart-drw">
+  <div class="cart-drw-h"><span class="cart-drw-title">Votre panier</span><button class="cart-drw-close" onclick="toggleCart()">✕</button></div>
+  <div class="cart-drw-body" id="cart-body"></div>
+  <div class="cart-drw-foot" id="cart-foot"></div>
+</div>
+
+<!-- MODALS -->
+<div class="overlay" id="checkout-ov"><div class="modal" id="checkout-modal" style="max-width:580px"></div></div>
+<div class="overlay" id="detail-ov" onclick="if(event.target===this)closeDetail()"><div class="modal" id="detail-modal" style="max-width:680px"></div></div>
+
+<!-- NAV -->
+<nav id="nav">
+  <a class="nlogo" href="#accueil"><span class="nlogo-w">NOURYA</span><span class="nlogo-a">نورية</span></a>
+  <div class="nlinks">
+    <a href="#boutique">Boutique</a>
+    <a href="#coffrets">Coffrets</a>
+    <a href="#diy">L'Atelier</a>
+    <a href="#rituels">Rituels</a>
+    <a href="#ingredients">Ingrédients</a>
+    <a href="#histoire">La marque</a>
+  </div>
+  <div class="nact">
+    <button class="nico" onclick="showFav()" title="Favoris">♡<span class="nbadge" id="fav-badge" style="display:none">0</span></button>
+    <button class="nico" onclick="toggleCart()" title="Panier">◈<span class="nbadge" id="cart-badge">0</span></button>
+    <button class="nbtn" onclick="showAccount()">Mon espace</button>
+    <button class="hamburger" onclick="mobileMenu()"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- MOBILE NAV -->
+<div class="mobile-nav" id="mobile-nav" role="dialog" aria-label="Menu principal">
+  <a href="#boutique" onclick="closeMobileMenu()">Boutique</a>
+  <a href="#coffrets" onclick="closeMobileMenu()">Coffrets</a>
+  <a href="#diy" onclick="closeMobileMenu()">L'Atelier</a>
+  <a href="#rituels" onclick="closeMobileMenu()">Rituels</a>
+  <a href="#ingredients" onclick="closeMobileMenu()">Ingrédients</a>
+  <a href="#histoire" onclick="closeMobileMenu()">La marque</a>
+</div>
+
+<!-- HERO -->
+<section class="hero" id="accueil">
+  <div class="hero-grain"></div><div class="hero-glow"></div><div class="hero-glow-rose"></div>
+  <div class="geo-l" style="width:1px;height:100%;left:33%;top:0;position:absolute;z-index:2"></div>
+  <div class="hero-inner">
+    <div class="hero-left">
+      <div class="htag"><div class="htag-line"></div><span class="htag-t">Soins naturels algériens</span></div>
+      <h1 class="hero-h1">
+        <span>La mémoire</span>
+        <span>de la terre,</span>
+        <span>au service <span class="rosee">de votre peau.</span></span>
+      </h1>
+      <div class="hero-ar">الجمال الجزائري الأصيل · نورية</div>
+      <p class="hero-p">Certains secrets ne s'inventent pas. Ils se transmettent, de main en main, de génération en génération. <strong>NOURYA</strong> les a recueillis, purifiés, et mis à votre disposition — sans concession.</p>
+      <div class="hero-ctas">
+        <a href="#boutique" class="btn-g">Découvrir la gamme &rsaquo;</a>
+        <a href="#histoire" class="btn-o">Notre philosophie</a>
+      </div>
+      <div class="hero-stats">
+        <div><div class="hstat-n" data-count="14">14</div><div class="hstat-l">Soins naturels</div></div>
+        <div><div class="hstat-n" data-count="100">100</div><div class="hstat-l">% ingrédients traçables</div></div>
+        <div><div class="hstat-n" data-count="0">0</div><div class="hstat-l">Parabène · Sulfate</div></div>
+      </div>
+    </div>
+    <div class="hero-right">
+      <div class="hero-showcase" id="heroShowcase">
+        <div class="hs-slides" id="hsSlides"></div>
+        <div class="hs-overlay"></div>
+        <div class="hs-content" id="hsContent">
+          <div class="hs-badge" id="hsBadge"></div>
+          <div class="hs-name" id="hsName"></div>
+          <div class="hs-desc" id="hsDesc"></div>
+          <div class="hs-row">
+            <div class="hs-price" id="hsPrice"></div>
+            <button class="hs-add" id="hsAdd">+ Panier</button>
+          </div>
+        </div>
+        <div class="hs-dots" id="hsDots"></div>
+        <div class="hs-timer"><div class="hs-timer-fill" id="hsTimer"></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-scroll" style="z-index:4"><div class="hero-scroll-bar"></div><span class="hero-scroll-lbl">Scroll</span></div>
+</section>
+
+<div class="band"><div class="band-track" id="band"></div></div>
+
+<!-- STORY -->
+<section class="story-sec" id="histoire">
+  <div class="story-left">
+    <div class="sec-tag fu"><div class="sec-tag-l"></div><span class="sec-tag-t">La marque</span></div>
+    <h2 class="sec-h fu d1">Il y a des savoirs que<br/>l'on n'invente pas,<br/><span class="rosee">on les hérite.</span></h2>
+    <blockquote class="story-quote fu d2">NOURYA est née d'un refus. Celui de voir des ingrédients d'une richesse exceptionnelle se noyer dans l'anonymat des marchés, alors qu'ils mériteraient d'orner les étagères des maisons les plus exigeantes.</blockquote>
+    <p class="sec-p fu d3" style="margin-top:24px">Nous avons parcouru les wilayas, rencontré des producteurs, appris à lire la qualité d'une huile à sa couleur et à sa façon de glisser entre les doigts. Ce que vous trouvez dans un flacon NOURYA, c'est le fruit de ce travail patient.<br/><br/>Aucun ingrédient superflu. Aucune promesse qui ne tienne pas à l'examen. Seulement ce qui fonctionne — et la transparence totale sur ce que vous appliquez sur votre peau.</p>
+    <div class="story-stat-row fu d4">
+      <div class="story-stat"><div class="stat-n">100%</div><div class="stat-l">Ingrédients traçables</div></div>
+      <div class="story-stat"><div class="stat-n">14</div><div class="stat-l">Soins & formules</div></div>
+      <div class="story-stat"><div class="stat-n">0</div><div class="stat-l">Parabène · Sulfate</div></div>
+    </div>
+  </div>
+  <div class="story-right fi-a">
+    <img class="story-img" src="https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=800&q=75" alt="Soins naturels artisanaux algériens" loading="lazy"/>
+    <div class="story-img-overlay"></div>
+    <div style="position:absolute;bottom:32px;left:32px;right:32px;z-index:3;text-align:center">
+      <div style="font-family:var(--fa);font-size:28px;color:rgba(233,197,192,.5);margin-bottom:8px">الجمال الجزائري الأصيل</div>
+      <div style="font-family:var(--ff);font-size:14px;letter-spacing:.2em;color:rgba(201,147,58,.6);text-transform:uppercase">La beauté algérienne authentique</div>
+    </div>
+  </div>
+</section>
+
+<!-- PROBLEMS -->
+<section class="prob-sec" id="problemes">
+  <div class="prob-intro">
+    <div>
+      <div class="sec-tag fu"><div class="sec-tag-l"></div><span class="sec-tag-t">Votre peau, vos cheveux</span></div>
+      <h2 class="sec-h light fu d1">Vous méritez<br/>mieux que<br/><span class="rosee">des compromis.</span></h2>
+    </div>
+    <p class="sec-p light fu d2">Trop de produits prétendent tout résoudre. Aucun ne s'est donné la peine de comprendre réellement la peau algérienne — sa relation à la chaleur, à l'eau calcaire, à l'héritage du hammam. NOURYA, si.</p>
+  </div>
+  <div class="prob-grid" id="prob-grid"></div>
+</section>
+
+<!-- BOUTIQUE -->
+<section class="prod-sec sec" id="boutique">
+  <div class="prod-head">
+    <div>
+      <div class="sec-tag"><div class="sec-tag-l"></div><span class="sec-tag-t">La gamme · 14 soins</span></div>
+      <h2 class="sec-h">Nos soins <span class="rosee">signature</span></h2>
+    </div>
+    <div class="filters" id="filters"></div>
+  </div>
+  <div class="pgrid" id="pgrid"></div>
+  <div class="flower-div" style="margin-top:52px">
+    <div class="fdl"></div>
+    <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><circle cx="13" cy="13" r="3.5" fill="var(--g)" opacity=".5"/><ellipse cx="13" cy="6" rx="3" ry="5" fill="var(--rosed)" opacity=".5"/><ellipse cx="20" cy="13" rx="5" ry="3" fill="var(--rosed)" opacity=".5"/><ellipse cx="13" cy="20" rx="3" ry="5" fill="var(--rosed)" opacity=".5"/><ellipse cx="6" cy="13" rx="5" ry="3" fill="var(--rosed)" opacity=".5"/></svg>
+    <div class="fdl r"></div>
+  </div>
+  <p style="text-align:center;font-family:var(--ff);font-style:italic;font-size:16px;color:var(--txt);opacity:.6;max-width:520px;margin:8px auto 0">Cliquez sur un soin pour découvrir son mode d'emploi, ses bienfaits détaillés et choisir votre format.</p>
+</section>
+
+<!-- COFFRETS -->
+<section class="cof-sec sec" id="coffrets">
+  <div style="text-align:center;max-width:620px;margin:0 auto 8px">
+    <div class="sec-tag fu" style="justify-content:center"><div class="sec-tag-l"></div><span class="sec-tag-t">Coffrets & routines</span></div>
+    <h2 class="sec-h fu d1">Des rituels <span class="rosee">pensés pour vous,</span><br/>pas assemblés au hasard.</h2>
+    <p class="sec-p fu d2" style="margin:16px auto 0">Chaque coffret répond à un besoin précis. Les accessoires sont en option — cochez ceux dont vous avez besoin, ignorez le reste. Nous ne vous vendons pas ce que vous avez déjà.</p>
+  </div>
+  <div class="cof-grid" id="cof-grid"></div>
+</section>
+
+<!-- DIY -->
+<section class="diy-sec" id="diy">
+  <div style="max-width:620px;margin-bottom:0">
+    <div class="sec-tag fu"><div class="sec-tag-l"></div><span class="sec-tag-t">L'Atelier NOURYA · DIY</span></div>
+    <h2 class="sec-h light fu d1">Composez votre soin,<br/><span class="rosee">goutte après goutte.</span></h2>
+    <p class="sec-p light fu d2" style="margin-top:16px">La beauté naturelle a toujours été affaire de mélange. Voici nos synergies maison — des associations d'huiles précises, dosées au plus juste. Ajoutez les accessoires dont vous avez besoin directement à votre commande.</p>
+  </div>
+  <div class="diy-grid" id="diy-grid"></div>
+  <p style="font-family:var(--fb);font-size:11px;font-weight:300;color:var(--c);opacity:.38;margin-top:28px;max-width:680px;line-height:1.7">Conseil : réalisez toujours un test cutané au pli du coude 24h avant toute première application. Conservez vos mélanges dans un flacon ambré, à l'abri de la lumière et de la chaleur, et utilisez-les dans les trois mois suivant la préparation.</p>
+</section>
+
+<!-- RITUAL -->
+<section class="ritual-sec" id="rituels">
+  <div style="text-align:center;max-width:560px;margin:0 auto">
+    <div class="sec-tag fu" style="justify-content:center"><div class="sec-tag-l"></div><span class="sec-tag-t">L'art du soin</span></div>
+    <h2 class="sec-h fu d1">Le rituel NOURYA :<br/>une <span class="rosee">séquence raisonnée.</span></h2>
+    <p class="sec-p fu d2" style="margin:16px auto 0">Chaque geste a sa place, chaque produit son rôle. Ce n'est pas une routine de plus — c'est une discipline douce, enracinée dans la tradition du hammam algérien.</p>
+  </div>
+  <div class="rsteps" id="rsteps"></div>
+</section>
+
+<!-- INGRÉDIENTS -->
+<section class="ingr-sec" id="ingredients">
+  <div class="ingr-layout">
+    <div class="ingr-sticky">
+      <div class="sec-tag fu"><div class="sec-tag-l"></div><span class="sec-tag-t">Origine & traçabilité</span></div>
+      <h2 class="sec-h fu d1">Des ingrédients<br/>dont nous<br/><span class="rosee">connaissons l'histoire.</span></h2>
+      <p class="sec-p fu d2">Nous refusons l'opacité qui règne dans l'industrie cosmétique. Chaque ingrédient NOURYA est sourcé directement, avec une connaissance précise de sa provenance, de sa méthode d'extraction et de ses actifs vérifiables.</p>
+      <p class="sec-p fu d3" style="margin-top:12px">Ce n'est pas un argument marketing. C'est une posture.</p>
+    </div>
+    <div class="ingr-grid" id="ingr-grid"></div>
+  </div>
+</section>
+
+<!-- LIVRAISON -->
+<section class="del-sec" id="livraison">
+  <div class="sec-tag fu"><div class="sec-tag-l"></div><span class="sec-tag-t">Livraison & paiement</span></div>
+  <h2 class="sec-h light fu d1">Commander doit être<br/><span class="rosee">aussi simple</span> que recevoir.</h2>
+  <div class="del-grid" id="del-grid"></div>
+  <div class="pay-row" id="pay-row"></div>
+  <div class="track-box">
+    <span class="track-label">Suivre ma commande</span>
+    <input class="track-in" placeholder="NOURYA-XXXXXX" id="track-in"/>
+    <button class="track-btn" onclick="trackOrder()">Rechercher &rsaquo;</button>
+  </div>
+</section>
+
+<!-- TÉMOIGNAGES -->
+<section class="test-sec" id="avis">
+  <div class="sec-tag fu"><div class="sec-tag-l"></div><span class="sec-tag-t">Paroles de clientes</span></div>
+  <h2 class="sec-h fu d1">Ce que nous ne<br/>pourrions pas dire<br/><span class="rosee">mieux nous-mêmes.</span></h2>
+  <div class="tgrid" id="tgrid"></div>
+</section>
+
+<!-- FAQ -->
+<section class="faq-sec" id="faq">
+  <div class="sec-tag fu"><div class="sec-tag-l"></div><span class="sec-tag-t">Questions fréquentes</span></div>
+  <h2 class="sec-h fu d1">Les réponses<br/>que vous méritez<br/><span class="rosee">d'avoir.</span></h2>
+  <div class="faq-wrap">
+    <div class="faq-side fu">
+      <p class="sec-p" style="font-size:15px">Nous avons réuni ici les questions qui reviennent le plus souvent. Si la vôtre n'y figure pas, nous sommes disponibles directement.</p>
+      <div class="faq-contact-box">
+        <div class="faq-contact-lbl">Nous écrire</div>
+        <div class="faq-contact-txt">Une question sur votre type de peau, un doute sur un ingrédient, un problème de commande — nous répondons personnellement, sous 12 heures.</div>
+        <a href="https://wa.me/213XXXXXXXXX" target="_blank" class="btn-g" style="font-size:10px;padding:11px 22px">WhatsApp &rsaquo;</a>
+      </div>
+    </div>
+    <div class="faq-list" id="faq-list"></div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="contact-sec" id="contact">
+  <div class="contact-grid">
+    <div class="fu">
+      <div class="sec-tag"><div class="sec-tag-l"></div><span class="sec-tag-t">L'univers NOURYA</span></div>
+      <h2 class="sec-h light">Rejoindre<br/>une communauté<br/><span class="rosee">qui sait ce qu'elle veut.</span></h2>
+      <p class="sec-p light" style="margin-top:18px">Nouveaux soins en avant-première, recettes exclusives, offres réservées aux membres — abonnez-vous pour recevoir ce qui en vaut la peine, rien de plus.</p>
+      <form class="nl-form" onsubmit="subscribe(event)"><input class="nl-in" type="email" placeholder="Votre adresse email" required/><button class="nl-btn" type="submit">S'abonner</button></form>
+      <div class="privacy-box"><span class="priv-ico">🔒</span><span class="priv-txt">Vos données personnelles ne sont jamais conservées ni transmises à des tiers. Vous pouvez vous désabonner à tout moment, sans justification.</span></div>
+      <div class="socials">
+        <a href="#" class="soc" title="Instagram">📸</a>
+        <a href="#" class="soc" title="TikTok">🎵</a>
+        <a href="#" class="soc" title="Facebook">📘</a>
+        <a href="https://wa.me/213XXXXXXXXX" class="soc" title="WhatsApp">💬</a>
+      </div>
+    </div>
+    <div class="fu d2">
+      <div class="qbox">
+        <div class="qbox-h">Posez votre question</div>
+        <div class="qbox-sub">Peau, produit, commande — nous répondons personnellement.</div>
+        <form onsubmit="sendQ(event)">
+          <input class="fi" type="text" placeholder="Votre prénom" required/>
+          <input class="fi" type="email" placeholder="Votre email" required/>
+          <textarea class="fi" rows="4" placeholder="Votre question ou message..." required></textarea>
+          <button type="submit" class="btn-g" style="width:100%;justify-content:center">Envoyer &rsaquo;</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-top">
+    <div>
+      <div class="fb-name">NOURYA</div>
+      <div class="fb-ar">نورية · Soins Naturels Algériens</div>
+      <p class="fb-desc">Formules artisanales issues des trésors naturels d'Algérie. Ingrédients traçables, compositions transparentes, résultats vérifiables.</p>
+    </div>
+    <div>
+      <div class="fc-t">Boutique</div>
+      <ul class="flinks">
+        <li><a href="#boutique">Soins visage</a></li>
+        <li><a href="#boutique">Soins cheveux</a></li>
+        <li><a href="#boutique">Corps & hammam</a></li>
+        <li><a href="#coffrets">Coffrets cadeaux</a></li>
+        <li><a href="#diy">L'Atelier DIY</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="fc-t">Service client</div>
+      <ul class="flinks">
+        <li><a href="#livraison">Livraison & délais</a></li>
+        <li><a href="#livraison">Modes de paiement</a></li>
+        <li><a href="#livraison">Retours & échanges</a></li>
+        <li><a href="#faq">FAQ</a></li>
+        <li><a href="#contact">Nous contacter</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="fc-t">La marque</div>
+      <ul class="flinks">
+        <li><a href="#histoire">Notre philosophie</a></li>
+        <li><a href="#ingredients">Nos ingrédients</a></li>
+        <li><a href="#rituels">Le rituel hammam</a></li>
+        <li><a href="#contact">Newsletter</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="fcopy">© 2026 NOURYA · Tous droits réservés · Algérie · Soins naturels artisanaux</div>
+    <div class="flegal"><a href="#">Confidentialité</a><a href="#">CGV</a><a href="#">Mentions légales</a></div>
+  </div>
+</footer>
+<script src="assets/js/main.js" defer></script>
+</body>
+</html>
