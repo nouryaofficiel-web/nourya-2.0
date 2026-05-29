@@ -367,7 +367,6 @@
       <ul class="flinks">
         <li><a href="#livraison">Livraison & délais</a></li>
         <li><a href="#livraison">Modes de paiement</a></li>
-        <li><a href="#livraison">Retours & échanges</a></li>
         <li><a href="#faq">FAQ</a></li>
         <li><a href="#contact">Nous contacter</a></li>
       </ul>
@@ -387,7 +386,9 @@
     <div class="flegal"><a href="#">Confidentialité</a><a href="#">CGV</a><a href="#">Mentions légales</a></div>
   </div>
 </footer>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<!-- Filet de sécurité : cache le loader après 4s même si JS plante -->
+<script>window.addEventListener('load',function(){setTimeout(function(){var l=document.getElementById('loader');if(l){l.style.opacity='0';l.style.visibility='hidden';l.style.pointerEvents='none';}},2500);});</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" async></script>
 <script src="assets/js/main.js" defer></script>
 </body>
 </html>
