@@ -60,9 +60,12 @@ async function loadAnnouncements() {
 }
 
 // ─── LOADER ───
-window.addEventListener('load', () => {
-  setTimeout(() => document.getElementById('loader').classList.add('gone'), 1800);
-});
+function hideLoader() {
+  const l = document.getElementById('loader');
+  if (l) { l.style.opacity = '0'; l.style.visibility = 'hidden'; l.style.pointerEvents = 'none'; }
+}
+document.addEventListener('DOMContentLoaded', () => setTimeout(hideLoader, 1800));
+window.addEventListener('load', () => setTimeout(hideLoader, 500));
 
 // Curseur natif du système — pas de curseur custom
 
