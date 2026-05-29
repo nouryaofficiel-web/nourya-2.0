@@ -460,8 +460,50 @@ function getPrice(p) {
   return p.formats[selectedFormats[p.id] || 0].price;
 }
 
+// ─── SEARCH ───
+let searchQuery = '';
+
+function handleSearch(q) {
+  searchQuery = q.trim().toLowerCase();
+  const closeBtn = document.getElementById('search-close');
+  if (closeBtn) closeBtn.style.display = q ? 'flex' : 'none';
+  buildProds();
+  if (q && document.getElementById('boutique')) {
+    document.getElementById('boutique').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+function clearSearch() {
+  searchQuery = '';
+  const inp = document.getElementById('search-input');
+  if (inp) inp.value = '';
+  const closeBtn = document.getElementById('search-close');
+  if (closeBtn) closeBtn.style.display = 'none';
+  buildProds();
+}
+
+let searchOpen = false;
+function toggleSearch() {
+  searchOpen = !searchOpen;
+  const s = document.getElementById('nsearch');
+  if (s) {
+    s.style.opacity = searchOpen ? '1' : '0';
+    s.style.pointerEvents = searchOpen ? 'all' : 'none';
+    s.style.maxWidth = searchOpen ? '240px' : '0';
+    if (searchOpen) setTimeout(() => document.getElementById('search-input')?.focus(), 100);
+  }
+}
+
 function buildProds() {
-  const list = activeCat === 'tous' ? PRODUCTS : PRODUCTS.filter(p => p.cat === activeCat);
+  let list = activeCat === 'tous' ? PRODUCTS : PRODUCTS.filter(p => p.cat === activeCat);
+  if (searchQuery) {
+    list = list.filter(p =>
+      p.name.toLowerCase().includes(searchQuery) ||
+      p.ar?.toLowerCase().includes(searchQuery) ||
+      p.desc?.toLowerCase().includes(searchQuery) ||
+      p.tags?.some(t => t.toLowerCase().includes(searchQuery))
+    );
+  }
   const catLbl = { visage:'Visage', cheveux:'Cheveux', corps:'Corps & Hammam' };
   document.getElementById('pgrid').innerHTML = list.map(p => {
     const fi = selectedFormats[p.id] || 0;
@@ -1028,7 +1070,270 @@ function toast(msg, ico = '✦') {
   el._t = setTimeout(() => el.classList.remove('on'), 3600);
 }
 
-function showAccount() { toast('Espace personnel — disponible prochainement.', '◈'); }
+// ─── AUTH ───
+let currentUser = null;
+
+supabase.auth.onAuthStateChange((event, session) => {
+  currentUser = session?.user || null;
+  updateAccountBtn();
+  if (currentUser) syncFavsFromDb();
+});
+
+function updateAccountBtn() {
+  const btn = document.querySelector('.nbtn');
+  if (!btn) return;
+  if (currentUser) {
+    const name = currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'Mon espace';
+    btn.textContent = name.split(' ')[0];
+  } else {
+    btn.textContent = 'Mon espace';
+  }
+}
+
+function showAccount() {
+  if (!currentUser) {
+    openAuthModal('login');
+  } else {
+    openAccountModal();
+  }
+}
+
+function openAuthModal(mode = 'login') {
+  const m = document.getElementById('auth-modal');
+  const isLogin = mode === 'login';
+  m.innerHTML = `
+    <button class="mcls" onclick="closeAuthModal()" aria-label="Fermer">✕</button>
+    <div class="modal-hd"><div class="modal-title">${isLogin ? 'Se connecter' : 'Créer un compte'}</div></div>
+    <div class="modal-body" style="padding:24px 28px">
+      ${!isLogin ? `<div class="fgrp"><label class="flbl" for="auth-name">Prénom et nom</label><input class="fin" id="auth-name" placeholder="Votre prénom et nom" autocomplete="name"/></div>` : ''}
+      <div class="fgrp"><label class="flbl" for="auth-email">Email</label><input class="fin" id="auth-email" type="email" placeholder="votre@email.com" autocomplete="email"/></div>
+      <div class="fgrp"><label class="flbl" for="auth-pwd">Mot de passe</label><input class="fin" id="auth-pwd" type="password" placeholder="Minimum 6 caractères" autocomplete="${isLogin ? 'current-password' : 'new-password'}"/></div>
+      <div class="auth-err" id="auth-err" style="display:none;color:var(--rosed);font-size:12px;margin-bottom:12px;"></div>
+      <button class="submit-btn" id="auth-submit-btn" onclick="${isLogin ? 'doLogin()' : 'doRegister()'}">
+        ${isLogin ? 'Se connecter' : "Créer mon compte"}
+      </button>
+      <div style="text-align:center;margin-top:16px;font-size:12px;color:var(--c);opacity:.5">
+        ${isLogin ?
+          `Pas encore de compte ? <button onclick="openAuthModal('register')" style="background:none;border:none;color:var(--g);font-size:12px;text-decoration:underline">S'inscrire</button>` :
+          `Déjà un compte ? <button onclick="openAuthModal('login')" style="background:none;border:none;color:var(--g);font-size:12px;text-decoration:underline">Se connecter</button>`
+        }
+      </div>
+    </div>`;
+  document.getElementById('auth-ov').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  setTimeout(() => document.getElementById('auth-email')?.focus(), 100);
+}
+
+function closeAuthModal() {
+  document.getElementById('auth-ov').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+async function doLogin() {
+  const email = document.getElementById('auth-email')?.value?.trim();
+  const pwd = document.getElementById('auth-pwd')?.value;
+  const btn = document.getElementById('auth-submit-btn');
+  if (!email || !pwd) { showAuthErr('Veuillez remplir tous les champs.'); return; }
+  btn.disabled = true; btn.textContent = 'Connexion...';
+  const { error } = await supabase.auth.signInWithPassword({ email, password: pwd });
+  if (error) { showAuthErr('Email ou mot de passe incorrect.'); btn.disabled = false; btn.textContent = 'Se connecter'; return; }
+  closeAuthModal();
+  toast('Bienvenue ! Vous êtes connecté.', '✦');
+}
+
+async function doRegister() {
+  const name = document.getElementById('auth-name')?.value?.trim();
+  const email = document.getElementById('auth-email')?.value?.trim();
+  const pwd = document.getElementById('auth-pwd')?.value;
+  const btn = document.getElementById('auth-submit-btn');
+  if (!name || !email || !pwd) { showAuthErr('Veuillez remplir tous les champs.'); return; }
+  if (pwd.length < 6) { showAuthErr('Le mot de passe doit contenir au moins 6 caractères.'); return; }
+  btn.disabled = true; btn.textContent = 'Création...';
+  const { error } = await supabase.auth.signUp({ email, password: pwd, options: { data: { full_name: name } } });
+  if (error) { showAuthErr(error.message || 'Erreur lors de la création du compte.'); btn.disabled = false; btn.textContent = 'Créer mon compte'; return; }
+  closeAuthModal();
+  toast('Compte créé ! Vérifiez votre email pour confirmer.', '✦');
+}
+
+function showAuthErr(msg) {
+  const e = document.getElementById('auth-err');
+  if (e) { e.textContent = msg; e.style.display = 'block'; }
+}
+
+document.addEventListener('click', e => {
+  if (e.target === document.getElementById('auth-ov')) closeAuthModal();
+  if (e.target === document.getElementById('account-ov')) closeAccountModal();
+});
+
+// ─── ACCOUNT MODAL ───
+async function openAccountModal() {
+  const m = document.getElementById('account-modal');
+  m.innerHTML = `
+    <button class="mcls" onclick="closeAccountModal()" aria-label="Fermer">✕</button>
+    <div class="modal-hd">
+      <div class="modal-title">Mon espace</div>
+      <div style="font-size:11px;opacity:.4;font-family:var(--fb);letter-spacing:.12em">${currentUser?.email}</div>
+    </div>
+    <div class="acc-tabs">
+      <button class="acc-tab on" onclick="switchAccTab('orders', this)">Commandes</button>
+      <button class="acc-tab" onclick="switchAccTab('favs', this)">Favoris</button>
+      <button class="acc-tab" onclick="switchAccTab('profile', this)">Profil</button>
+    </div>
+    <div class="modal-body" id="acc-content" style="padding:24px 28px">
+      <div class="loading-s" style="text-align:center;padding:40px;opacity:.4">Chargement...</div>
+    </div>
+    <div style="padding:16px 28px;border-top:1px solid rgba(196,164,92,.1);text-align:right">
+      <button onclick="doLogout()" style="background:none;border:1px solid rgba(190,123,116,.3);color:var(--rosed);padding:8px 20px;font-family:var(--fb);font-size:10px;letter-spacing:.14em;text-transform:uppercase">Déconnexion</button>
+    </div>`;
+  document.getElementById('account-ov').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  loadAccTab('orders');
+}
+
+function closeAccountModal() {
+  document.getElementById('account-ov').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function switchAccTab(tab, btn) {
+  document.querySelectorAll('.acc-tab').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  loadAccTab(tab);
+}
+
+async function loadAccTab(tab) {
+  const content = document.getElementById('acc-content');
+  if (!content) return;
+  content.innerHTML = `<div style="text-align:center;padding:40px;opacity:.4;font-family:var(--ff);font-size:18px">Chargement...</div>`;
+
+  if (tab === 'orders') {
+    try {
+      const res = await fetch(`${SB_URL}/rest/v1/orders?user_id=eq.${currentUser.id}&order=created_at.desc`, {
+        headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + (await supabase.auth.getSession()).data.session?.access_token }
+      });
+      const orders = res.ok ? await res.json() : [];
+      if (!orders || !orders.length) {
+        content.innerHTML = `<div style="text-align:center;padding:60px 20px;font-family:var(--ff);font-size:20px;opacity:.3">Aucune commande pour l'instant.</div>`;
+        return;
+      }
+      const statusColors = { pending:'rgba(196,164,92,.6)', processing:'rgba(196,164,92,.9)', shipped:'#6de89a', delivered:'#27ae60', cancelled:'var(--rosed)' };
+      const statusLabels = { pending:'En attente', processing:'En traitement', shipped:'Expédiée', delivered:'Livrée', cancelled:'Annulée' };
+      const payLabels = { pending:'En attente', confirmed:'Confirmé', failed:'Échoué' };
+      content.innerHTML = orders.map(o => `
+        <div class="acc-order-row" onclick="toggleOrderDetail('ord-${o.id}')">
+          <div>
+            <div style="font-family:var(--ff);font-size:16px;color:var(--c)">${o.order_number}</div>
+            <div style="font-size:11px;opacity:.4;margin-top:2px">${new Date(o.created_at).toLocaleDateString('fr-DZ', {day:'2-digit',month:'long',year:'numeric'})}</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-family:var(--ff);font-size:18px;color:var(--g)">${o.total?.toLocaleString()} DA</div>
+            <span style="font-size:10px;letter-spacing:.1em;color:${statusColors[o.delivery_status]||'rgba(196,164,92,.6)'}">${statusLabels[o.delivery_status]||o.delivery_status}</span>
+          </div>
+        </div>
+        <div class="acc-order-detail" id="ord-${o.id}" style="display:none">
+          <div style="font-size:12px;opacity:.5;margin-bottom:10px">Paiement : ${payLabels[o.payment_status]||o.payment_status} · ${o.payment_method}</div>
+          ${(o.items||[]).map(i=>`<div style="display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px solid rgba(196,164,92,.07)"><span>${i.name} × ${i.qty}</span><span style="color:var(--g)">${(i.price*i.qty).toLocaleString()} DA</span></div>`).join('')}
+          <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:600;margin-top:10px;padding-top:10px;border-top:1px solid rgba(196,164,92,.12)"><span>Total</span><span style="color:var(--g)">${o.total?.toLocaleString()} DA</span></div>
+          <div style="font-size:11px;opacity:.35;margin-top:8px">Livraison : ${o.wilaya} · ${o.address}</div>
+        </div>
+      `).join('');
+    } catch(e) {
+      content.innerHTML = `<div style="text-align:center;padding:40px;color:var(--rosed);font-size:13px">Erreur lors du chargement des commandes.</div>`;
+    }
+  } else if (tab === 'favs') {
+    const favProds = PRODUCTS.filter(p => favs.includes(p.id));
+    if (!favProds.length) {
+      content.innerHTML = `<div style="text-align:center;padding:60px;font-family:var(--ff);font-size:20px;opacity:.3">Aucun favori pour l'instant.</div>`;
+      return;
+    }
+    content.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px">` +
+      favProds.map(p => `
+        <div style="border:1px solid rgba(196,164,92,.12);padding:12px;background:var(--n2)">
+          <img src="${p.img}" alt="${p.name}" style="width:100%;height:120px;object-fit:cover;margin-bottom:10px" onerror="this.style.display='none'"/>
+          <div style="font-family:var(--ff);font-size:15px;margin-bottom:4px">${p.name}</div>
+          <div style="font-size:11px;color:var(--g)">${p.formats[0].price.toLocaleString()} DA</div>
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <button onclick="addToCart(${p.id});closeAccountModal()" style="flex:1;background:var(--g);color:var(--n1);border:none;padding:8px;font-size:9px;letter-spacing:.12em;text-transform:uppercase;font-family:var(--fb)">+ Panier</button>
+            <button onclick="toggleFav(${p.id});loadAccTab('favs')" style="background:none;border:1px solid rgba(190,123,116,.3);color:var(--rosed);padding:8px 10px;font-size:12px">♥</button>
+          </div>
+        </div>`).join('') + `</div>`;
+  } else if (tab === 'profile') {
+    let profile = {};
+    try {
+      const session = await supabase.auth.getSession();
+      const res = await fetch(`${SB_URL}/rest/v1/profiles?id=eq.${currentUser.id}`, {
+        headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + session.data.session?.access_token }
+      });
+      if (res.ok) { const rows = await res.json(); if (rows[0]) profile = rows[0]; }
+    } catch(e) {}
+    content.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div class="fgrp" style="grid-column:1/-1">
+          <label class="flbl">Nom complet</label>
+          <input class="fin" id="prof-name" value="${profile.full_name || currentUser?.user_metadata?.full_name || ''}"/>
+        </div>
+        <div class="fgrp">
+          <label class="flbl">Email</label>
+          <input class="fin" value="${currentUser?.email||''}" disabled style="opacity:.5"/>
+        </div>
+        <div class="fgrp">
+          <label class="flbl">Téléphone</label>
+          <input class="fin" id="prof-phone" value="${profile.phone||''}" placeholder="0XXXXXXXXX"/>
+        </div>
+        <div class="fgrp" style="grid-column:1/-1">
+          <label class="flbl">Wilaya</label>
+          <input class="fin" id="prof-wilaya" value="${profile.wilaya||''}" placeholder="ex: Alger"/>
+        </div>
+      </div>
+      <button class="submit-btn" style="margin-top:20px" onclick="saveProfile()">Enregistrer</button>`;
+  }
+}
+
+function toggleOrderDetail(id) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+async function saveProfile() {
+  const session = await supabase.auth.getSession();
+  const token = session.data.session?.access_token;
+  const data = {
+    full_name: document.getElementById('prof-name')?.value?.trim(),
+    phone: document.getElementById('prof-phone')?.value?.trim(),
+    wilaya: document.getElementById('prof-wilaya')?.value?.trim(),
+  };
+  try {
+    await fetch(`${SB_URL}/rest/v1/profiles?id=eq.${currentUser.id}`, {
+      method: 'PATCH',
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify(data)
+    });
+    toast('Profil mis à jour.', '✦');
+  } catch(e) { toast('Erreur lors de la mise à jour.', '⚠'); }
+}
+
+async function doLogout() {
+  await supabase.auth.signOut();
+  closeAccountModal();
+  toast('Déconnecté. À bientôt !', '✦');
+}
+
+async function syncFavsFromDb() {
+  if (!currentUser) return;
+  try {
+    const session = await supabase.auth.getSession();
+    const res = await fetch(`${SB_URL}/rest/v1/favorites?user_id=eq.${currentUser.id}`, {
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + session.data.session?.access_token }
+    });
+    if (res.ok) {
+      const rows = await res.json();
+      rows.forEach(r => { const id = parseInt(r.product_id); if (!favs.includes(id)) favs.push(id); });
+      buildProds();
+      const b = document.getElementById('fav-badge');
+      if (b) { b.textContent = favs.length; b.style.display = favs.length ? 'flex' : 'none'; }
+    }
+  } catch(e) {}
+}
 
 // ─── MENU MOBILE ───
 let mobileNavOpen = false;
@@ -1176,16 +1481,13 @@ function initHeroShowcase(){
 }
 
 // ─── SUPABASE — chargement des produits admin ───
-const _SB_URL = 'https://wnwirmlvgjfzymixswsy.supabase.co';
-const _SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indud2lybWx2Z2pmenltaXhzd3N5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NzcxMzksImV4cCI6MjA4OTQ1MzEzOX0.wxrbK6_ny7j3wI2l-bvIy9ljYqj_xbiyHncB5QJCnSc';
-
 async function loadAdminProducts(){
   try{
     const [hiddenRes, prodRes] = await Promise.all([
-      fetch(`${_SB_URL}/rest/v1/nourya_hidden_products?select=product_id`,
-        { headers:{ 'apikey':_SB_KEY, 'Authorization':'Bearer '+_SB_KEY } }),
-      fetch(`${_SB_URL}/rest/v1/nourya_products?visible=eq.true&order=created_at.asc&select=*`,
-        { headers:{ 'apikey':_SB_KEY, 'Authorization':'Bearer '+_SB_KEY } })
+      fetch(`${SB_URL}/rest/v1/nourya_hidden_products?select=product_id`,
+        { headers:{ 'apikey':SB_KEY, 'Authorization':'Bearer '+SB_KEY } }),
+      fetch(`${SB_URL}/rest/v1/nourya_products?visible=eq.true&order=created_at.asc&select=*`,
+        { headers:{ 'apikey':SB_KEY, 'Authorization':'Bearer '+SB_KEY } })
     ]);
 
     // Apply hidden IDs — splice static products out of PRODUCTS
@@ -1249,3 +1551,5 @@ initHeroShowcase();
 renderCart();
 updateBadge();
 loadAdminProducts();
+loadSiteSettings();
+loadAnnouncements();
