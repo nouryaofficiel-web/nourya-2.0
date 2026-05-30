@@ -820,21 +820,31 @@ const HIDDEN_TABLE = 'nourya_hidden_products';
 const LEGACY_TABLE = 'nourya_products';
 
 // ── SUPABASE CLIENT ──
-const supabase = window.supabase.createClient(SB_URL, SB_KEY);
+if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+  document.getElementById('login-err').textContent = 'Erreur : impossible de charger le service d\'authentification. Vérifiez votre connexion internet.';
+  document.getElementById('login-err').classList.add('show');
+}
+const supabase = (window.supabase && typeof window.supabase.createClient === 'function')
+  ? window.supabase.createClient(SB_URL, SB_KEY)
+  : null;
 
 // ── SUPABASE REST HELPER ──
 async function sbFetch(path, opts = {}) {
+  if (!supabase) throw new Error('Supabase non initialisé.');
   const sessionData = await supabase.auth.getSession();
   const token = sessionData.data.session?.access_token || SB_KEY;
+  // Destructure to avoid opts.headers / opts.prefer overriding the constructed headers
+  const { headers: extraHeaders, prefer, body, method } = opts;
   const res = await fetch(SB_URL + '/rest/v1/' + path, {
+    method: method || 'GET',
     headers: {
       'apikey': SB_KEY,
       'Authorization': 'Bearer ' + token,
       'Content-Type': 'application/json',
-      'Prefer': opts.prefer || 'return=representation',
-      ...opts.headers
+      'Prefer': prefer || 'return=representation',
+      ...extraHeaders
     },
-    ...opts
+    ...(body !== undefined ? { body } : {}),
   });
   if (!res.ok) { const e = await res.text(); throw new Error(e); }
   const text = await res.text();
@@ -896,6 +906,7 @@ let currentTab = 'produits';
 // AUTH
 // ═══════════════════════════════════════════════
 async function tryLogin() {
+  if (!supabase) { showLoginErr('Service indisponible. Vérifiez votre connexion.'); return; }
   const email = document.getElementById('login-email').value.trim();
   const pwd = document.getElementById('login-pwd').value;
   if (!email || !pwd) { showLoginErr('Veuillez remplir tous les champs.'); return; }
@@ -938,12 +949,13 @@ function enterApp(user) {
 }
 
 async function logout() {
-  await supabase.auth.signOut();
+  if (supabase) await supabase.auth.signOut();
   location.reload();
 }
 
 // ── INIT ──
 (async function init() {
+  if (!supabase) return;
   const { data } = await supabase.auth.getSession();
   if (data.session) {
     const role = data.session.user?.app_metadata?.role;
@@ -1013,8 +1025,8 @@ function renderProductTable() {
       <td><span class="cat-tag">${catLabel(p.cat)}</span></td>
       <td><span class="stock-badge stock-ok">En stock</span></td>
       <td style="font-size:11px;color:var(--c);opacity:.2;letter-spacing:.07em;">Catalogue fixe</td>
-      <td><button class="vis-toggle ${hidden ? '' : 'on'}" onclick="toggleStatic(${p.id},${hidden})"></button></td>
-      <td><span style="font-size:11px;color:${hidden ? 'var(--rosed)' : 'rgba(196,164,92,.5)'};">${hidden ? 'Masqué' : 'Visible'}</span></td>
+      <td><button class="vis-toggle ${hidden ? '' : 'on'}" onclick="toggleStatic(${p.id},${hidden})" title="${hidden ? 'Afficher' : 'Masquer'}"></button><div style="font-size:9px;color:${hidden ? 'var(--rosed)' : 'rgba(196,164,92,.5)'};margin-top:4px;letter-spacing:.06em">${hidden ? 'Masqué' : 'Visible'}</div></td>
+      <td><span style="font-size:11px;color:var(--c);opacity:.2;">—</span></td>
     </tr>`;
   }).join('');
 
@@ -1498,7 +1510,7 @@ async function loadSettings() {
     siteSettings = {};
     (data || []).forEach(row => { siteSettings[row.key] = row.value; });
     SETTINGS_KEYS.forEach(k => {
-      const el = document.getElementById('set-' + k.replace('_', '-'));
+      const el = document.getElementById('set-' + k.replace(/_/g, '-'));
       if (el) el.value = siteSettings[k] || '';
     });
   } catch (e) {
@@ -1526,7 +1538,6 @@ async function saveSettings() {
       method: 'POST',
       body: JSON.stringify(upserts),
       prefer: 'resolution=merge-duplicates,return=minimal',
-      headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' }
     });
 
     const saved = document.getElementById('settings-saved');

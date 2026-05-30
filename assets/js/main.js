@@ -5,7 +5,12 @@
 // ─── SUPABASE ───
 const SB_URL = 'https://wnwirmlvgjfzymixswsy.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indud2lybWx2Z2pmenltaXhzd3N5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NzcxMzksImV4cCI6MjA4OTQ1MzEzOX0.wxrbK6_ny7j3wI2l-bvIy9ljYqj_xbiyHncB5QJCnSc';
-const supabase = window.supabase ? window.supabase.createClient(SB_URL, SB_KEY) : null;
+let supabase = null;
+try {
+  if (window.supabase && typeof window.supabase.createClient === 'function') {
+    supabase = window.supabase.createClient(SB_URL, SB_KEY);
+  }
+} catch(e) { console.warn('Supabase init failed', e); }
 
 // ─── SITE SETTINGS ───
 let siteSettings = {
@@ -48,8 +53,8 @@ async function loadAnnouncements() {
     const a = rows[0];
     const bar = document.getElementById('announcement-bar');
     if (!bar) return;
-    const typeColors = { promo: 'var(--g)', info: 'rgba(196,164,92,.7)', alert: 'var(--rosed)' };
-    bar.innerHTML = `<div class="ann-bar" style="--ann-color:${typeColors[a.type]||typeColors.info}">
+    const typeColors = { promo: 'var(--g)', info: 'rgba(196,164,92,.7)', alert: 'var(--rosed)', alerte: 'var(--rosed)' };
+    bar.innerHTML = `<div class="ann-bar" style="--ann-color:${typeColors[(a.type||'').toLowerCase()]||typeColors.info}">
       <span class="ann-ico">✦</span>
       <span class="ann-title">${a.title}</span>
       ${a.body ? `<span class="ann-body"> — ${a.body}</span>` : ''}
@@ -529,7 +534,7 @@ function buildProds() {
         <div class="pc-name">${p.name}</div>
         <div class="pc-ar">${p.ar}</div>
         <div class="pc-formats">
-          ${p.formats.map((f, i) => `<button class="fmt-btn${i === fi ? ' sel' : ''}" onclick="event.stopPropagation();setFormat(${p.id},${i});this.closest('.pc').querySelectorAll('.fmt-btn').forEach((b,j)=>b.classList.toggle('sel',j===${i}));this.closest('.pc').querySelector('.pc-price').innerHTML='${f.price.toLocaleString()} <small>DA</small>';this.closest('.pc').querySelector('.fmt-qty').querySelector('span').textContent='${f.qty}';">${f.lbl}</button>`).join('')}
+          ${p.formats.map((f, i) => `<button class="fmt-btn${i === fi ? ' sel' : ''}" onclick="event.stopPropagation();setFormat(${p.id},${i});this.closest('.pc').querySelectorAll('.fmt-btn').forEach((b,j)=>b.classList.toggle('sel',j===${i}));this.closest('.pc').querySelector('.pc-price').innerHTML='${f.price.toLocaleString()} <small>DA</small>';this.closest('.pc').querySelector('.fmt-qty').querySelectorAll('span')[1].textContent='${f.qty}';">${f.lbl}</button>`).join('')}
         </div>
         <div class="fmt-qty"><span class="fmt-qty-icon">📦</span><span>${p.formats[fi].qty}</span></div>
         <div class="pc-tags">${p.tags.map(t => `<span class="pc-tag">${t}</span>`).join('')}</div>
@@ -873,7 +878,7 @@ async function toggleFav(id) {
   if (idx > -1) {
     favs.splice(idx, 1);
     toast('Retiré de vos favoris.', '♡');
-    if (currentUser) {
+    if (supabase && currentUser) {
       try {
         const session = await supabase.auth.getSession();
         await fetch(`${SB_URL}/rest/v1/favorites?user_id=eq.${currentUser.id}&product_id=eq.${id}`, {
@@ -885,7 +890,7 @@ async function toggleFav(id) {
   } else {
     favs.push(id);
     toast('Ajouté à vos favoris.', '♥');
-    if (currentUser) {
+    if (supabase && currentUser) {
       try {
         const session = await supabase.auth.getSession();
         await fetch(`${SB_URL}/rest/v1/favorites`, {
@@ -994,7 +999,7 @@ async function submitOrder() {
     total,
     payment_method: payMethod,
     payment_status: 'pending',
-    delivery_status: 'pending',
+    delivery_status: 'waiting',
   };
 
   const btn = document.querySelector('.submit-btn');
@@ -1133,18 +1138,22 @@ function closeAuthModal() {
 }
 
 async function doLogin() {
+  if (!supabase) { showAuthErr('Service temporairement indisponible. Veuillez réessayer.'); return; }
   const email = document.getElementById('auth-email')?.value?.trim();
   const pwd = document.getElementById('auth-pwd')?.value;
   const btn = document.getElementById('auth-submit-btn');
   if (!email || !pwd) { showAuthErr('Veuillez remplir tous les champs.'); return; }
   btn.disabled = true; btn.textContent = 'Connexion...';
-  const { error } = await supabase.auth.signInWithPassword({ email, password: pwd });
-  if (error) { showAuthErr('Email ou mot de passe incorrect.'); btn.disabled = false; btn.textContent = 'Se connecter'; return; }
-  closeAuthModal();
-  toast('Bienvenue ! Vous êtes connecté.', '✦');
+  try {
+    const { error } = await supabase.auth.signInWithPassword({ email, password: pwd });
+    if (error) { showAuthErr('Email ou mot de passe incorrect.'); btn.disabled = false; btn.textContent = 'Se connecter'; return; }
+    closeAuthModal();
+    toast('Bienvenue ! Vous êtes connecté.', '✦');
+  } catch(e) { showAuthErr('Erreur de connexion.'); btn.disabled = false; btn.textContent = 'Se connecter'; }
 }
 
 async function doRegister() {
+  if (!supabase) { showAuthErr('Service temporairement indisponible. Veuillez réessayer.'); return; }
   const name = document.getElementById('auth-name')?.value?.trim();
   const email = document.getElementById('auth-email')?.value?.trim();
   const pwd = document.getElementById('auth-pwd')?.value;
@@ -1152,10 +1161,12 @@ async function doRegister() {
   if (!name || !email || !pwd) { showAuthErr('Veuillez remplir tous les champs.'); return; }
   if (pwd.length < 6) { showAuthErr('Le mot de passe doit contenir au moins 6 caractères.'); return; }
   btn.disabled = true; btn.textContent = 'Création...';
-  const { error } = await supabase.auth.signUp({ email, password: pwd, options: { data: { full_name: name } } });
-  if (error) { showAuthErr(error.message || 'Erreur lors de la création du compte.'); btn.disabled = false; btn.textContent = 'Créer mon compte'; return; }
-  closeAuthModal();
-  toast('Compte créé ! Vérifiez votre email pour confirmer.', '✦');
+  try {
+    const { error } = await supabase.auth.signUp({ email, password: pwd, options: { data: { full_name: name } } });
+    if (error) { showAuthErr(error.message || 'Erreur lors de la création du compte.'); btn.disabled = false; btn.textContent = 'Créer mon compte'; return; }
+    closeAuthModal();
+    toast('Compte créé ! Vérifiez votre email pour confirmer.', '✦');
+  } catch(e) { showAuthErr('Erreur lors de la création du compte.'); btn.disabled = false; btn.textContent = 'Créer mon compte'; }
 }
 
 function showAuthErr(msg) {
@@ -1211,8 +1222,9 @@ async function loadAccTab(tab) {
 
   if (tab === 'orders') {
     try {
+      const sessionData = supabase ? (await supabase.auth.getSession()) : { data: { session: null } };
       const res = await fetch(`${SB_URL}/rest/v1/orders?user_id=eq.${currentUser.id}&order=created_at.desc`, {
-        headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + (await supabase.auth.getSession()).data.session?.access_token }
+        headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + (sessionData.data.session?.access_token || SB_KEY) }
       });
       const orders = res.ok ? await res.json() : [];
       if (!orders || !orders.length) {
@@ -1263,7 +1275,7 @@ async function loadAccTab(tab) {
   } else if (tab === 'profile') {
     let profile = {};
     try {
-      const session = await supabase.auth.getSession();
+      const session = supabase ? (await supabase.auth.getSession()) : { data: { session: null } };
       const res = await fetch(`${SB_URL}/rest/v1/profiles?id=eq.${currentUser.id}`, {
         headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + session.data.session?.access_token }
       });
@@ -1298,6 +1310,7 @@ function toggleOrderDetail(id) {
 }
 
 async function saveProfile() {
+  if (!supabase) { toast('Service indisponible.', '⚠'); return; }
   const session = await supabase.auth.getSession();
   const token = session.data.session?.access_token;
   const data = {
@@ -1316,13 +1329,13 @@ async function saveProfile() {
 }
 
 async function doLogout() {
-  await supabase.auth.signOut();
+  if (supabase) await supabase.auth.signOut();
   closeAccountModal();
   toast('Déconnecté. À bientôt !', '✦');
 }
 
 async function syncFavsFromDb() {
-  if (!currentUser) return;
+  if (!supabase || !currentUser) return;
   try {
     const session = await supabase.auth.getSession();
     const res = await fetch(`${SB_URL}/rest/v1/favorites?user_id=eq.${currentUser.id}`, {
@@ -1486,12 +1499,13 @@ function initHeroShowcase(){
 // ─── SUPABASE — chargement des produits admin ───
 async function loadAdminProducts(){
   try{
-    const [hiddenRes, prodRes] = await Promise.all([
-      fetch(`${SB_URL}/rest/v1/nourya_hidden_products?select=product_id`,
-        { headers:{ 'apikey':SB_KEY, 'Authorization':'Bearer '+SB_KEY } }),
-      fetch(`${SB_URL}/rest/v1/nourya_products?visible=eq.true&order=created_at.asc&select=*`,
-        { headers:{ 'apikey':SB_KEY, 'Authorization':'Bearer '+SB_KEY } })
-    ]);
+    // Try primary 'products' table first, fall back to legacy 'nourya_products'
+    const hdrs = { 'apikey':SB_KEY, 'Authorization':'Bearer '+SB_KEY };
+    let prodRes = await fetch(`${SB_URL}/rest/v1/products?visible=eq.true&order=created_at.asc&select=*`, { headers: hdrs });
+    if (!prodRes.ok) {
+      prodRes = await fetch(`${SB_URL}/rest/v1/nourya_products?visible=eq.true&order=created_at.asc&select=*`, { headers: hdrs });
+    }
+    const hiddenRes = await fetch(`${SB_URL}/rest/v1/nourya_hidden_products?select=product_id`, { headers: hdrs });
 
     // Apply hidden IDs — splice static products out of PRODUCTS
     if(hiddenRes.ok){
@@ -1536,7 +1550,7 @@ async function loadAdminProducts(){
           ingr:     [],
         });
       });
-      selectedFormats && rows.forEach((_,i)=>{ const p=PRODUCTS[PRODUCTS.length-rows.length+i]; if(p) selectedFormats[p.id]=0; });
+      PRODUCTS.forEach(p => { if (selectedFormats[p.id] === undefined) selectedFormats[p.id] = 0; });
     }
     buildFilters();
     buildProds();
