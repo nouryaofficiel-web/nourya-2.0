@@ -217,7 +217,7 @@ const PRODUCTS = [
    tags:["Anti-chute","Repousse","Fortifiant"],
    benefits:["Freine la chute en renforçant l'ancrage du cheveu","Stimule les follicules endormis et favorise la repousse","Assainit le cuir chevelu, combat les pellicules","Apaise les démangeaisons et irritations","Redonne densité aux cheveux clairsemés","Efficace aussi sur les imperfections cutanées"],
    usage:["Versez directement sur le cuir chevelu, raie par raie.","Massez du bout des doigts 2 à 3 minutes, insistez sur les zones dégarnies.","Répartissez le reste sur les longueurs jusqu'aux pointes.","Laissez poser 1h minimum ou toute la nuit. Lavez avec un shampoing doux. 2 fois par semaine."],
-   ingr:["Huile de nigelle 100% pure","Pressée à froid","Origine Jijel · Algérie"]},
+   ingr:["Huile de nigelle 100% pure, pressée à froid"]},
 
   {id:3,name:"Huile d'Argan Pure",ar:"زيت الأركان",cat:"cheveux",emoji:"✦",
    formats:[{lbl:"50 ml",qty:"50 ml · Flacon doré",price:1400},{lbl:"100 ml",qty:"100 ml · Grand format",price:2400}],
@@ -245,12 +245,12 @@ const PRODUCTS = [
    formats:[{lbl:"100 g",qty:"100 g · Pot en verre",price:1100},{lbl:"200 g",qty:"200 g · Grand pot",price:1900}],
    badge:null,btype:"",img:IMGS.masque_miel,
    peau:"Peaux à imperfections · acnéiques",
-   desc:"Miel de Jijel et argile réunis. Le premier cicatrise et nourrit, la seconde purifie. Contre l'acné sans agresser.",
-   long:"Contre l'acné, assécher la peau irrite et aggrave le problème. Le miel de Jijel antibactérien calme l'inflammation pendant que l'argile absorbe le sébum. Doux mais efficace dans la durée.",
+   desc:"Miel brut et argile réunis. Le premier cicatrise et nourrit, la seconde purifie. Contre l'acné sans agresser.",
+   long:"Contre l'acné, assécher la peau irrite et aggrave le problème. Le miel brut antibactérien calme l'inflammation pendant que l'argile absorbe le sébum. Doux mais efficace dans la durée.",
    tags:["Anti-acné","Cicatrisant","Apaisant"],
-   benefits:["Miel de Jijel antibactérien naturel sur les boutons","Réduit inflammations et rougeurs","Favorise la cicatrisation, estompe les marques","Absorbe le sébum sans décaper","Nourrit sans assécher, évite l'effet rebond","Rééquilibre les peaux mixtes"],
+   benefits:["Miel brut antibactérien naturel sur les boutons","Réduit inflammations et rougeurs","Favorise la cicatrisation, estompe les marques","Absorbe le sébum sans décaper","Nourrit sans assécher, évite l'effet rebond","Rééquilibre les peaux mixtes"],
    usage:["Appliquez une couche généreuse sur peau propre.","Laissez poser 15 minutes.","Rincez à l'eau tiède par mouvements circulaires doux.","2 fois par semaine en cure, une fois en entretien."],
-   ingr:["Miel de Jijel brut","Argile (ghassoul)","Sans conservateur ajouté"]},
+   ingr:["Miel brut","Argile (ghassoul)","Sans conservateur ajouté"]},
 
   {id:6,name:"Masque Capillaire Ghassoul-Hibiscus",ar:"قناع الكركديه",cat:"cheveux",emoji:"🌺",
    formats:[{lbl:"200 g",qty:"200 g · Pot en verre",price:1100},{lbl:"400 g",qty:"400 g · Pot familial",price:1900}],
@@ -272,7 +272,7 @@ const PRODUCTS = [
    tags:["Exfoliant","Nourrit","Peau satinée"],
    benefits:["Élimine les cellules mortes sans agresser","Grains de sucre roux — polis sans micro-rayer","L'argan nourrit pendant l'exfoliation","Active la microcirculation pour une peau tonique","Prépare la peau à mieux absorber les soins","Idéal avant épilation contre les poils incarnés"],
    usage:["Sur peau humide sous la douche, prélevez une noix de gommage.","Massez en mouvements circulaires, insistez sur coudes, genoux, talons.","Évitez le visage.","Rincez à l'eau tiède. 1 à 2 fois par semaine."],
-   ingr:["Sucre roux","Huile d'argan","Miel de Jijel","Huiles essentielles naturelles"]},
+   ingr:["Sucre roux","Huile d'argan","Miel brut","Huiles essentielles naturelles"]},
 
   {id:8,name:"Beurre Leave-In Karité",ar:"زبدة الكاريتيه",cat:"cheveux",emoji:"💛",
    formats:[{lbl:"100 g",qty:"100 g · Pot en verre",price:1400},{lbl:"200 g",qty:"200 g · Grand format",price:2500}],
@@ -301,11 +301,11 @@ const PRODUCTS = [
    badge:"Premium",btype:"",img:IMGS.serum_saffran,
    peau:"Teint terne · taches · signes de fatigue",
    desc:"Safran algérien infusé 24h dans l'huile de rose musquée. Au réveil : un teint qui n'a pas besoin d'explication.",
-   long:"Le safran est l'une des épices les plus actives en cosmétique. Ses caroténoïdes unifient le teint et combattent les taches. Infusé 24h dans l'huile de rose musquée, il compose un sérum de nuit d'exception.",
+   long:"Le safran est l'une des épices les plus actives en cosmétique. Ses caroténoïdes unifient le teint et combattent les taches. Sélectionné pour sa pureté, il est infusé 24h dans l'huile de rose musquée pour composer un sérum de nuit d'exception.",
    tags:["Anti-taches","Éclat doré","Nocturne"],
    benefits:["Le safran unifie et estompe les taches pigmentaires","La rose musquée régénère pendant le sommeil","Efface les signes de fatigue au réveil","Lisse le grain de peau, atténue les ridules","Antioxydant puissant contre le vieillissement","Apporte une luminosité naturelle, l'effet glow"],
    usage:["Le soir uniquement (le safran réagit à la lumière).","2 à 3 gouttes dans la paume.","Appliquez sur visage et cou par pressions douces.","Laissez agir toute la nuit. 4 à 5 applications par semaine. Résultats visibles après 3 semaines."],
-   ingr:["Safran algérien (Tipaza)","Huile de rose musquée","Huile de figue de Barbarie"]},
+   ingr:["Safran algérien","Huile de rose musquée","Huile de figue de Barbarie"]},
 
   {id:11,name:"Savon Noir Beldi",ar:"الصابون البلدي",cat:"corps",emoji:"⚫",
    formats:[{lbl:"200 g",qty:"200 g · Pot en verre",price:800},{lbl:"500 g",qty:"500 g · Grand format",price:1700}],
@@ -322,8 +322,8 @@ const PRODUCTS = [
    formats:[{lbl:"200 ml",qty:"200 ml · Spray en verre",price:700},{lbl:"100 ml",qty:"100 ml · Format voyage",price:400}],
    badge:null,btype:"rose",img:IMGS.eau_oranger,
    peau:"Tous types · peaux sensibles",
-   desc:"Distillée au printemps quand les orangers de Blida sont en pleine floraison. Tonique, apaisante, légèrement astringente.",
-   long:"Distillée à la vapeur à Blida au moment exact de la floraison. Un hydrolat polyvalent : tonique, brume rafraîchissante, et un parfum qui appartient à la mémoire collective algérienne.",
+   desc:"Distillée au printemps à la pleine floraison des orangers. Tonique, apaisante, légèrement astringente.",
+   long:"Distillée à la vapeur au moment exact de la floraison. Un hydrolat polyvalent : tonique, brume rafraîchissante, et un parfum qui appartient à la mémoire collective algérienne.",
    tags:["Tonique","Apaisant","Rafraîchissant"],
    benefits:["Tonifie et resserre légèrement les pores","Apaise les rougeurs et l'inconfort","Rafraîchit instantanément par forte chaleur","Prépare la peau à mieux absorber les soins","Fixe le maquillage en brume finale","Parfum naturel de néroli, sans alcool ajouté"],
    usage:["Après nettoyage, vaporisez à 20 cm du visage, yeux fermés.","Tapotez pour faire pénétrer, ou laissez sécher à l'air.","Avant le sérum : prépare et hydrate pour une meilleure absorption.","En journée : rafraîchit même sur maquillage."],
@@ -350,6 +350,17 @@ const PRODUCTS = [
    benefits:["Épaissit et densifie les cheveux clairsemés","Stimule la pousse des cils et sourcils","Fortifie la fibre capillaire, réduit la casse","Nourrit intensément les pointes sèches","Renforce les ongles cassants","Assainit et hydrate le cuir chevelu"],
    usage:["Cheveux : mélangez avec argan ou nigelle, massez, 1h de pose, lavez.","Cils et sourcils : le soir avec une brosse propre. Rincez au matin.","Ongles : une goutte massée sur l'ongle et la cuticule, le soir.","Résultats sur la densité après 4 à 8 semaines de régularité."],
    ingr:["Huile de ricin 100% pure","Pressée à froid"]},
+
+  {id:15,name:"Déodorant Baume Nigelle",ar:"مزيل عرق النيجيلا",cat:"hygiene",emoji:"🌿",
+   formats:[{lbl:"50 g",qty:"50 g · Pot en verre · 3 mois d'utilisation",price:850},{lbl:"100 g",qty:"100 g · Grand pot · 6 mois d'utilisation",price:1500}],
+   badge:"Nouveau",btype:"",img:"https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?w=600&q=80",
+   peau:"Tous types · Peaux sensibles · Femmes enceintes",
+   desc:"Six ingrédients. Zéro compromis. La thymoquinone de la nigelle neutralise les bactéries responsables des odeurs à la source — sans bloquer la transpiration naturelle.",
+   long:"La thymoquinone, molécule unique de la nigelle, détruit le Staphylocoque Hominis — la bactérie directement responsable des mauvaises odeurs axillaires. Sans aluminium, sans parabènes, sans bloquer la transpiration naturelle du corps.",
+   tags:["Sans aluminium","Sans parabènes","Peaux sensibles"],
+   benefits:["Thymoquinone de la nigelle neutralise les bactéries à la source","N'obstrue pas les pores — transpiration naturelle préservée","Huile de coco nourrit les aisselles fragilisées par l'épilation","Fécule de maïs absorbe l'humidité sans effet poudré","Bicarbonate neutralise les odeurs par action sur le pH","Convient aux femmes enceintes et peaux hypersensibles"],
+   usage:["Sur aisselle propre et sèche, prélever une noisette de baume.","Réchauffer entre les doigts — fond au contact de la chaleur.","Appliquer en mouvements circulaires jusqu'à absorption complète.","Une application le matin suffit. Les 5–10 premiers jours, une légère adaptation est possible."],
+   ingr:["Huile de nigelle 100% pure, pressée à froid","Huile de coco bio (Cocos nucifera)","Fécule de maïs bio (Zea mays starch)","Bicarbonate de soude","Cire d'abeille pure (Cera alba)","Fragrance naturelle"]},
 ];
 
 // ─── COFFRETS ───
@@ -399,14 +410,14 @@ const PROBLEMS = [
 ];
 
 const INGRS = [
-  {e:"🌵",n:"Figue de Barbarie",a:"الهندية",t:"L'huile la plus concentrée en vitamine E. Extraite à froid, elle régénère, lisse et illumine sans jamais alourdir.",o:"Batna · Tlemcen",img:IMGS.ingr_figue},
-  {e:"⚫",n:"Habba Sawda",a:"الحبة السوداء",t:"Anti-inflammatoire, antibactérienne, stimulante de la repousse. Deux millénaires de tradition validés par la science.",o:"Jijel · Skikda",img:IMGS.ingr_nigelle},
-  {e:"🪨",n:"Ghassoul",a:"الغاسول",t:"Argile du Moyen Atlas déposée depuis des millions d'années. Absorbe, purifie, restructure — sans jamais agresser.",o:"Atlas Maghrébin",img:IMGS.ingr_ghassoul},
-  {e:"🌸",n:"Fleur d'Oranger",a:"ماء الزهر",t:"Distillée à la vapeur au printemps, quand les orangers de Blida sont en pleine floraison. Tonique et apaisante.",o:"Blida · Médéa",img:IMGS.ingr_oranger},
-  {e:"✦",n:"Argan",a:"زيت الأركان",t:"Pressé à froid, non torréfié. Pénètre sans laisser de film, nourrit sans peser.",o:"Tlemcen · Naâma",img:IMGS.ingr_argan},
-  {e:"🏵️",n:"Safran Algérien",a:"الزعفران",t:"Ses caroténoïdes unifient le teint et estompent les taches avec une efficacité que les synthèses peinent à reproduire.",o:"Tipaza · Algérie",img:IMGS.ingr_safran},
-  {e:"💛",n:"Karité Brut",a:"زبدة الشيا",t:"Non raffiné, non déodorisé. Ce qui reste quand on ne retire rien. Vitamines A, E, F intactes.",o:"Afrique de l'Ouest",img:IMGS.ingr_karite},
-  {e:"🌺",n:"Hibiscus",a:"الكركديه",t:"Surnommé le botox capillaire. Gaine la fibre, apporte du volume et ravive les reflets naturels.",o:"Sud algérien",img:IMGS.ingr_hibiscus},
+  {e:"🌵",n:"Figue de Barbarie",a:"الهندية",t:"L'huile la plus concentrée en vitamine E. Extraite à froid, elle régénère, lisse et illumine sans jamais alourdir.",img:IMGS.ingr_figue},
+  {e:"⚫",n:"Habba Sawda",a:"الحبة السوداء",t:"Anti-inflammatoire, antibactérienne, stimulante de la repousse. Deux millénaires de tradition validés par la science.",img:IMGS.ingr_nigelle},
+  {e:"🪨",n:"Ghassoul",a:"الغاسول",t:"Argile du Moyen Atlas déposée depuis des millions d'années. Absorbe, purifie, restructure — sans jamais agresser.",img:IMGS.ingr_ghassoul},
+  {e:"🌸",n:"Fleur d'Oranger",a:"ماء الزهر",t:"Distillée à la vapeur au printemps, à la pleine floraison des orangers. Tonique et apaisante.",img:IMGS.ingr_oranger},
+  {e:"✦",n:"Argan",a:"زيت الأركان",t:"Pressé à froid, non torréfié. Pénètre sans laisser de film, nourrit sans peser.",img:IMGS.ingr_argan},
+  {e:"🏵️",n:"Safran Algérien",a:"الزعفران",t:"Ses caroténoïdes unifient le teint et estompent les taches avec une efficacité que les synthèses peinent à reproduire.",img:IMGS.ingr_safran},
+  {e:"💛",n:"Karité Brut",a:"زبدة الشيا",t:"Non raffiné, non déodorisé. Ce qui reste quand on ne retire rien. Vitamines A, E, F intactes.",img:IMGS.ingr_karite},
+  {e:"🌺",n:"Hibiscus",a:"الكركديه",t:"Surnommé le botox capillaire. Gaine la fibre, apporte du volume et ravive les reflets naturels.",img:IMGS.ingr_hibiscus},
 ];
 
 const RITUAL = [
@@ -455,8 +466,8 @@ document.getElementById('prob-grid').innerHTML = PROBLEMS.map((p, i) => `
 </div>`).join('');
 
 function buildFilters() {
-  const cats = ['tous', 'visage', 'cheveux', 'corps'];
-  const lbl = { tous:'Tous les soins', visage:'Visage', cheveux:'Cheveux', corps:'Corps & Hammam' };
+  const cats = ['tous', 'visage', 'cheveux', 'corps', 'hygiene'];
+  const lbl = { tous:'Tous les soins', visage:'Visage', cheveux:'Cheveux', corps:'Corps & Hammam', hygiene:'Hygiène' };
   document.getElementById('filters').innerHTML = cats.map(c =>
     `<button class="fbtn${c === activeCat ? ' on' : ''}" onclick="filterProd('${c}')">${lbl[c]}</button>`
   ).join('');
@@ -512,7 +523,7 @@ function buildProds() {
       p.tags?.some(t => t.toLowerCase().includes(searchQuery))
     );
   }
-  const catLbl = { visage:'Visage', cheveux:'Cheveux', corps:'Corps & Hammam' };
+  const catLbl = { visage:'Visage', cheveux:'Cheveux', corps:'Corps & Hammam', hygiene:'Hygiène' };
   document.getElementById('pgrid').innerHTML = list.map(p => {
     const fi = selectedFormats[p.id] || 0;
     return `<div class="pc fu">
@@ -643,7 +654,6 @@ document.getElementById('ingr-grid').innerHTML = INGRS.map(i => `
     <div class="icard-name">${i.n}</div>
     <div class="icard-ar">${i.a}</div>
     <div class="icard-txt">${i.t}</div>
-    <div class="icard-origin">📍 ${i.o}</div>
   </div>
 </div>`).join('');
 
@@ -721,7 +731,7 @@ function openDetail(id) {
   const p = PRODUCTS.find(x => x.id === id);
   if (!p) return;
   const fi = selectedFormats[p.id] || 0;
-  const catLbl = { visage:'Visage', cheveux:'Cheveux', corps:'Corps & Hammam' };
+  const catLbl = { visage:'Visage', cheveux:'Cheveux', corps:'Corps & Hammam', hygiene:'Hygiène' };
   const m = document.getElementById('detail-modal');
   m.innerHTML = `
     <button class="mcls" onclick="closeDetail()" aria-label="Fermer">✕</button>
@@ -788,8 +798,8 @@ function addToCart(id) {
   const e = cart.find(x => x.key === key);
   if (e) e.qty++;
   else cart.push({ key, id, name: p.name, emoji: p.emoji, img: p.img, format: p.formats[fi].qty, price: p.formats[fi].price, qty: 1, isCof: false });
-  renderCart(); updateBadge(); saveCart();
-  toast(`${p.name} (${p.formats[fi].lbl}) ajouté au panier.`, '✦');
+  renderCart(); updateBadgeAnim(); saveCart();
+  toast('Produit ajouté ✦', '✦');
 }
 
 function addCofToCart(cid) {
@@ -802,8 +812,8 @@ function addCofToCart(cid) {
   });
   const key = `cof-${cid}-${Date.now()}`;
   cart.push({ key, id: cid, name: c.name + (accsList.length ? ` + ${accsList.length} acc.` : ''), emoji: '🎁', img: c.img, format: 'Coffret complet', price: total, qty: 1, isCof: true });
-  renderCart(); updateBadge(); saveCart();
-  toast(`${c.name} ajouté au panier.`, '✦');
+  renderCart(); updateBadgeAnim(); saveCart();
+  toast('Produit ajouté ✦', '✦');
 }
 
 function addDiyToCart(di) {
@@ -817,8 +827,8 @@ function addDiyToCart(di) {
   if (total === 0) { toast('Sélectionnez au moins un accessoire, ou commandez les huiles individuellement.', '⚠'); return; }
   const key = `diy-${di}-${Date.now()}`;
   cart.push({ key, id: 1000 + di, name: `${d.name} — accessoires`, emoji: '🧪', format: `${accsList.length} accessoire(s)`, price: total, qty: 1, isCof: true });
-  renderCart(); updateBadge(); saveCart();
-  toast(`Accessoires ${d.name} ajoutés au panier.`, '✦');
+  renderCart(); updateBadgeAnim(); saveCart();
+  toast('Produit ajouté ✦', '✦');
 }
 
 function removeCart(key) { cart = cart.filter(x => x.key !== key); renderCart(); updateBadge(); saveCart(); }
@@ -834,6 +844,16 @@ function updateBadge() {
   document.getElementById('cart-badge').textContent = n;
 }
 
+function updateBadgeAnim() {
+  const n = cart.reduce((s, i) => s + i.qty, 0);
+  const badge = document.getElementById('cart-badge');
+  badge.textContent = n;
+  badge.classList.remove('bump');
+  void badge.offsetWidth;
+  badge.classList.add('bump');
+  setTimeout(() => badge.classList.remove('bump'), 400);
+}
+
 function toggleCart() {
   document.getElementById('cart-drw').classList.toggle('open');
   document.getElementById('cart-ov').classList.toggle('open');
@@ -844,7 +864,7 @@ function renderCart() {
   const foot = document.getElementById('cart-foot');
   if (!cart.length) {
     body.innerHTML = `<div class="cart-empty-s"><div class="cart-empty-ico">◈</div><div class="cart-empty-t">Votre panier est vide</div></div>`;
-    foot.innerHTML = '';
+    foot.innerHTML = `<button class="btn-o" style="width:100%;justify-content:center;font-size:10px" onclick="toggleCart();document.getElementById('boutique').scrollIntoView({behavior:'smooth'})">Découvrir nos soins</button>`;
     return;
   }
   body.innerHTML = cart.map(i => `
@@ -1054,6 +1074,16 @@ async function submitOrder() {
       ${payInfo}
       <button class="btn-g" onclick="closeCheckout();cart=[];updateBadge();renderCart();saveCart();">Retour à la boutique</button>
     </div>`;
+  // Save order to localStorage for admin
+  try {
+    const existingOrders = JSON.parse(localStorage.getItem('nourya_orders') || '[]');
+    orderData.id = orderData.order_number;
+    orderData.created_at = new Date().toISOString();
+    orderData.payment_status = 'pending';
+    orderData.delivery_status = 'waiting';
+    existingOrders.unshift(orderData);
+    localStorage.setItem('nourya_orders', JSON.stringify(existingOrders));
+  } catch(e) {}
   cart = []; updateBadge(); renderCart(); saveCart();
 }
 
@@ -1177,6 +1207,17 @@ function showAuthErr(msg) {
 document.addEventListener('click', e => {
   if (e.target === document.getElementById('auth-ov')) closeAuthModal();
   if (e.target === document.getElementById('account-ov')) closeAccountModal();
+  if (e.target === document.getElementById('checkout-ov')) closeCheckout();
+});
+
+// Escape closes active modal
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  if (document.getElementById('detail-ov').classList.contains('open')) { closeDetail(); return; }
+  if (document.getElementById('checkout-ov').classList.contains('open')) { closeCheckout(); return; }
+  if (document.getElementById('auth-ov').classList.contains('open')) { closeAuthModal(); return; }
+  if (document.getElementById('account-ov').classList.contains('open')) { closeAccountModal(); return; }
+  if (document.getElementById('cart-drw').classList.contains('open')) { toggleCart(); return; }
 });
 
 // ─── ACCOUNT MODAL ───
@@ -1421,9 +1462,12 @@ function observeAnim() {
     });
   }, { threshold: 0.08, rootMargin: '0px 0px -24px 0px' });
 
-  document.querySelectorAll('.fu:not(.vis), .fi-a:not(.vis), .fls:not(.vis)').forEach(el => obs.observe(el));
-  document.querySelectorAll('.rstep:not(.vis)').forEach(el => obs.observe(el));
+  const toObserve = [];
+  document.querySelectorAll('.fu:not(.vis), .fi-a:not(.vis), .fls:not(.vis)').forEach(el => { obs.observe(el); toObserve.push(el); });
+  document.querySelectorAll('.rstep:not(.vis)').forEach(el => { obs.observe(el); toObserve.push(el); });
   document.querySelectorAll('[data-count]').forEach(el => obs.observe(el));
+  // Fallback: force visibility after 2.5s
+  setTimeout(() => { toObserve.forEach(el => { if (!el.classList.contains('vis')) el.classList.add('vis'); }); }, 2500);
 }
 
 // ─── HERO SHOWCASE ───

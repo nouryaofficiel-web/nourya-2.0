@@ -6,7 +6,7 @@
 <title>NOURYA — Administration</title>
 <meta name="robots" content="noindex,nofollow"/>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<!-- Supabase removed — using localStorage -->
 <style>
 :root{
   --g:#C4A45C;--gl:#D6BC78;
@@ -445,8 +445,7 @@ body{background:var(--n1);color:var(--c);font-family:var(--fb);min-height:100vh;
     <div class="login-logo">NOURYA</div>
     <div class="login-sub">Espace administration</div>
     <div class="login-fields">
-      <input type="email" id="login-email" placeholder="Adresse e-mail" autocomplete="email"/>
-      <input type="password" id="login-pwd" placeholder="Mot de passe" autocomplete="current-password"/>
+      <input type="password" id="login-pwd" placeholder="Mot de passe administration" autocomplete="current-password"/>
     </div>
     <button class="login-btn" id="login-btn" onclick="tryLogin()">
       <span id="login-label">Accéder</span>
@@ -674,6 +673,7 @@ body{background:var(--n1);color:var(--c);font-family:var(--fb);min-height:100vh;
             <option value="visage">Visage</option>
             <option value="cheveux">Cheveux</option>
             <option value="corps">Corps &amp; Hammam</option>
+            <option value="hygiene">Hygiène</option>
           </select>
         </div>
 
@@ -813,80 +813,69 @@ body{background:var(--n1);color:var(--c);font-family:var(--fb);min-height:100vh;
 <div class="toast" id="toast"></div>
 
 <script>
-// ── CONFIG ──
-const SB_URL = 'https://wnwirmlvgjfzymixswsy.supabase.co';
-const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indud2lybWx2Z2pmenltaXhzd3N5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NzcxMzksImV4cCI6MjA4OTQ1MzEzOX0.wxrbK6_ny7j3wI2l-bvIy9ljYqj_xbiyHncB5QJCnSc';
-const HIDDEN_TABLE = 'nourya_hidden_products';
-const LEGACY_TABLE = 'nourya_products';
+// ── CONFIG localStorage ──
+const LS_KEY = 'nourya_cms_v1';
+const ADMIN_PWD_HASH = 'b4c52e46b0a1e0f39dfa4f26e7b67b1c8ef34b21ce67a92f0b2a29f4c8e3d5a1'; // nourya2026 SHA-256 placeholder
+const CORRECT_HASH = '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8'; // will be computed at runtime
 
-// ── SUPABASE CLIENT ──
-if (!window.supabase || typeof window.supabase.createClient !== 'function') {
-  document.getElementById('login-err').textContent = 'Erreur : impossible de charger le service d\'authentification. Vérifiez votre connexion internet.';
-  document.getElementById('login-err').classList.add('show');
+// ── STATIC PRODUCTS (from main.js catalog) ──
+const BASE_STATIC_IDS = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15];
+
+// ── localStorage helpers ──
+function lsGet() {
+  try { return JSON.parse(localStorage.getItem(LS_KEY) || 'null') || defaultData(); } catch(e) { return defaultData(); }
 }
-const supabase = (window.supabase && typeof window.supabase.createClient === 'function')
-  ? window.supabase.createClient(SB_URL, SB_KEY)
-  : null;
-
-// ── SUPABASE REST HELPER ──
-async function sbFetch(path, opts = {}) {
-  if (!supabase) throw new Error('Supabase non initialisé.');
-  const sessionData = await supabase.auth.getSession();
-  const token = sessionData.data.session?.access_token || SB_KEY;
-  // Destructure to avoid opts.headers / opts.prefer overriding the constructed headers
-  const { headers: extraHeaders, prefer, body, method } = opts;
-  const res = await fetch(SB_URL + '/rest/v1/' + path, {
-    method: method || 'GET',
-    headers: {
-      'apikey': SB_KEY,
-      'Authorization': 'Bearer ' + token,
-      'Content-Type': 'application/json',
-      'Prefer': prefer || 'return=representation',
-      ...extraHeaders
+function lsSave(data) {
+  data.last_modified = new Date().toISOString();
+  try { localStorage.setItem(LS_KEY, JSON.stringify(data)); } catch(e) {}
+}
+function defaultData() {
+  return {
+    products: [],
+    hidden_static: [],
+    announcements: [],
+    settings: {
+      whatsapp: '213XXXXXXXXX',
+      instagram: '#',
+      tiktok: '',
+      facebook: '',
+      ccp: '',
+      rib: '',
+      baridimob: '',
+      email_admin: 'admin@nourya.dz',
+      note_livraison: 'Livraison incluse dans le prix. Délai: 3-7 jours ouvrables.',
     },
-    ...(body !== undefined ? { body } : {}),
-  });
-  if (!res.ok) { const e = await res.text(); throw new Error(e); }
-  const text = await res.text();
-  return text ? JSON.parse(text) : null;
+    last_modified: null,
+  };
 }
 
-// ── IMAGE UPLOAD ──
+// ── IMAGE "UPLOAD" (base64 stored in localStorage) ──
 async function uploadProductImage(file) {
-  const sessionData = await supabase.auth.getSession();
-  const token = sessionData.data.session?.access_token || SB_KEY;
-  const ext = file.name.split('.').pop();
-  const filename = `product-${Date.now()}.${ext}`;
-  const res = await fetch(`${SB_URL}/storage/v1/object/product-images/${filename}`, {
-    method: 'POST',
-    headers: {
-      'apikey': SB_KEY,
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': file.type,
-      'x-upsert': 'true',
-    },
-    body: file,
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => resolve(e.target.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
   });
-  if (!res.ok) throw new Error('Upload failed');
-  return `${SB_URL}/storage/v1/object/public/product-images/${filename}`;
 }
 
 // ── STATIC PRODUCTS ──
 const STATIC_PRODUCTS = [
-  {id:1,  name:"Sérum Figue de Barbarie",            cat:"visage",  badge:"Best-seller", img:"https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=600&q=80"},
-  {id:2,  name:"Huile Nigelle Anti-Chute",            cat:"cheveux", badge:"Nouveau",     img:"https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=600&q=80"},
-  {id:3,  name:"Huile d'Argan Pure",                 cat:"cheveux", badge:null,           img:"https://images.unsplash.com/photo-1631125915902-d8abe9225ff2?w=600&q=80"},
-  {id:4,  name:"Masque Ghassoul Curcuma",             cat:"visage",  badge:null,           img:"https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=600&q=80"},
-  {id:5,  name:"Masque Miel & Argile Anti-Acné",     cat:"visage",  badge:null,           img:"https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?w=600&q=80"},
-  {id:6,  name:"Masque Capillaire Ghassoul-Hibiscus", cat:"cheveux", badge:null,           img:"https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=600&q=80"},
-  {id:7,  name:"Gommage Sucre & Argan",               cat:"corps",   badge:null,           img:"https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=600&q=80"},
-  {id:8,  name:"Beurre Leave-In Karité",              cat:"cheveux", badge:null,           img:"https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?w=600&q=80"},
-  {id:9,  name:"Beurre Corps Karité-Rose",            cat:"corps",   badge:null,           img:"https://images.unsplash.com/photo-1519415510236-718bdfcd89c8?w=600&q=80"},
-  {id:10, name:"Sérum Nuit Saffron Glow",             cat:"visage",  badge:"Premium",      img:"https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=600&q=80"},
+  {id:1,  name:"Sérum Figue de Barbarie",            cat:"visage",  badge:"Best-seller", img:"https://images.unsplash.com/photo-1611080541599-8c6dbde6ed28?w=600&q=80"},
+  {id:2,  name:"Huile Nigelle Anti-Chute",            cat:"cheveux", badge:"Nouveau",     img:"https://images.unsplash.com/photo-1548013146-72479768bada?w=600&q=80"},
+  {id:3,  name:"Huile d'Argan Pure",                 cat:"cheveux", badge:null,           img:"https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=600&q=80"},
+  {id:4,  name:"Masque Ghassoul Curcuma",             cat:"visage",  badge:null,           img:"https://images.unsplash.com/photo-1601049541982-13f4e79a47b5?w=600&q=80"},
+  {id:5,  name:"Masque Miel & Argile Anti-Acné",     cat:"visage",  badge:null,           img:"https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=600&q=80"},
+  {id:6,  name:"Masque Capillaire Ghassoul-Hibiscus", cat:"cheveux", badge:null,           img:"https://images.unsplash.com/photo-1502741224143-90386d7f8c82?w=600&q=80"},
+  {id:7,  name:"Gommage Sucre & Argan",               cat:"corps",   badge:null,           img:"https://images.unsplash.com/photo-1556909172-6abba14a1c3d?w=600&q=80"},
+  {id:8,  name:"Beurre Leave-In Karité",              cat:"cheveux", badge:null,           img:"https://images.unsplash.com/photo-1526947425960-945c6e72858f?w=600&q=80"},
+  {id:9,  name:"Beurre Corps Karité-Rose",            cat:"corps",   badge:null,           img:"https://images.unsplash.com/photo-1559181567-c3190bfa3c5e?w=600&q=80"},
+  {id:10, name:"Sérum Nuit Saffron Glow",             cat:"visage",  badge:"Premium",      img:"https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=600&q=80"},
   {id:11, name:"Savon Noir Beldi",                    cat:"corps",   badge:null,           img:"https://images.unsplash.com/photo-1600857544200-b2f666a9a2ec?w=600&q=80"},
-  {id:12, name:"Eau de Fleur d'Oranger",             cat:"visage",  badge:null,           img:"https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=600&q=80"},
+  {id:12, name:"Eau de Fleur d'Oranger",             cat:"visage",  badge:null,           img:"https://images.unsplash.com/photo-1590419690008-905895e8fe0d?w=600&q=80"},
   {id:13, name:"Ghassoul Premium en Poudre",          cat:"corps",   badge:null,           img:"https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=600&q=80"},
-  {id:14, name:"Huile de Ricin Fortifiante",          cat:"cheveux", badge:null,           img:"https://images.unsplash.com/photo-1515377905703-c4788e51af15?w=600&q=80"},
+  {id:14, name:"Huile de Ricin Fortifiante",          cat:"cheveux", badge:null,           img:"https://images.unsplash.com/photo-1617128734662-66da6c1d3505?w=600&q=80"},
+  {id:15, name:"Déodorant Baume Nigelle",             cat:"hygiene", badge:"Nouveau",      img:"https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?w=600&q=80"},
 ];
 
 // ── STATE ──
@@ -903,26 +892,25 @@ let siteSettings = {};
 let currentTab = 'produits';
 
 // ═══════════════════════════════════════════════
-// AUTH
+// AUTH (localStorage + SHA-256)
 // ═══════════════════════════════════════════════
-async function tryLogin() {
-  if (!supabase) { showLoginErr('Service indisponible. Vérifiez votre connexion.'); return; }
-  const email = document.getElementById('login-email').value.trim();
-  const pwd = document.getElementById('login-pwd').value;
-  if (!email || !pwd) { showLoginErr('Veuillez remplir tous les champs.'); return; }
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
 
+async function tryLogin() {
+  const pwd = document.getElementById('login-pwd').value;
+  if (!pwd) { showLoginErr('Veuillez entrer le mot de passe.'); return; }
   setLoginLoading(true);
   try {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password: pwd });
-    if (error) throw error;
-    const role = data.session?.user?.app_metadata?.role;
-    if (role !== 'admin') {
-      await supabase.auth.signOut();
-      throw new Error('Accès réservé aux administrateurs.');
-    }
-    enterApp(data.session.user);
+    const hash = await sha256(pwd);
+    const targetHash = await sha256('nourya2026');
+    if (hash !== targetHash) throw new Error('Mot de passe incorrect.');
+    sessionStorage.setItem('nourya_admin', hash);
+    enterApp('admin@nourya.dz');
   } catch (e) {
-    showLoginErr(e.message || 'Identifiants incorrects.');
+    showLoginErr(e.message || 'Mot de passe incorrect.');
     setLoginLoading(false);
   }
 }
@@ -941,34 +929,29 @@ function showLoginErr(msg) {
   setTimeout(() => el.classList.remove('show'), 4000);
 }
 
-function enterApp(user) {
+function enterApp(email) {
   document.getElementById('login-screen').classList.add('gone');
   document.getElementById('app').classList.add('show');
-  document.getElementById('topbar-user').textContent = user.email;
+  document.getElementById('topbar-user').textContent = email;
   loadCurrentTab();
 }
 
-async function logout() {
-  if (supabase) await supabase.auth.signOut();
+function logout() {
+  sessionStorage.removeItem('nourya_admin');
   location.reload();
 }
 
 // ── INIT ──
 (async function init() {
-  if (!supabase) return;
-  const { data } = await supabase.auth.getSession();
-  if (data.session) {
-    const role = data.session.user?.app_metadata?.role;
-    if (role === 'admin') {
-      enterApp(data.session.user);
-      return;
-    }
-    await supabase.auth.signOut();
+  const stored = sessionStorage.getItem('nourya_admin');
+  if (stored) {
+    const expected = await sha256('nourya2026');
+    if (stored === expected) { enterApp('admin@nourya.dz'); return; }
+    sessionStorage.removeItem('nourya_admin');
   }
 })();
 
 document.getElementById('login-pwd').addEventListener('keydown', e => { if (e.key === 'Enter') tryLogin(); });
-document.getElementById('login-email').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('login-pwd').focus(); });
 
 // ═══════════════════════════════════════════════
 // TABS
@@ -990,26 +973,16 @@ function loadCurrentTab() {
 // ═══════════════════════════════════════════════
 // TAB: PRODUITS
 // ═══════════════════════════════════════════════
-async function loadProducts() {
+function loadProducts() {
   document.getElementById('prods-loading').style.display = 'flex';
   document.getElementById('table-wrap').style.display = 'none';
-  try {
-    const [hiddenData, dynamicData] = await Promise.all([
-      sbFetch(HIDDEN_TABLE + '?select=product_id'),
-      sbFetch('products?order=created_at.desc&select=*').catch(() =>
-        sbFetch(LEGACY_TABLE + '?order=created_at.desc&select=*').catch(() => [])
-      )
-    ]);
-    hiddenIds = new Set((hiddenData || []).map(r => r.product_id));
-    dynamicProducts = dynamicData || [];
-    renderProductTable();
-    renderProductStats();
-  } catch (e) {
-    showToast('Erreur de chargement des produits.', 'error');
-  } finally {
-    document.getElementById('prods-loading').style.display = 'none';
-    document.getElementById('table-wrap').style.display = 'block';
-  }
+  const data = lsGet();
+  hiddenIds = new Set(data.hidden_static || []);
+  dynamicProducts = data.products || [];
+  renderProductTable();
+  renderProductStats();
+  document.getElementById('prods-loading').style.display = 'none';
+  document.getElementById('table-wrap').style.display = 'block';
 }
 
 function renderProductTable() {
@@ -1061,24 +1034,24 @@ function renderProductStats() {
   document.getElementById('stat-hidden').textContent = total - visible;
 }
 
-async function toggleStatic(id, isHidden) {
-  try {
-    if (isHidden) {
-      await sbFetch(HIDDEN_TABLE + '?product_id=eq.' + id, { method: 'DELETE', prefer: 'return=minimal' });
-      showToast('Produit réaffiché.', 'success');
-    } else {
-      await sbFetch(HIDDEN_TABLE, { method: 'POST', body: JSON.stringify({ product_id: id }), prefer: 'return=minimal' });
-      showToast('Produit masqué.', 'success');
-    }
-    await loadProducts();
-  } catch (e) { showToast('Erreur : ' + e.message, 'error'); }
+function toggleStatic(id, isHidden) {
+  const data = lsGet();
+  if (isHidden) {
+    data.hidden_static = (data.hidden_static || []).filter(x => x !== id);
+    showToast('Produit réaffiché.', 'success');
+  } else {
+    data.hidden_static = [...new Set([...(data.hidden_static || []), id])];
+    showToast('Produit masqué.', 'success');
+  }
+  lsSave(data);
+  loadProducts();
 }
 
-async function toggleVisible(id, current) {
-  try {
-    await sbFetch('products?id=eq.' + id, { method: 'PATCH', body: JSON.stringify({ visible: !current }), prefer: 'return=minimal' });
-    await loadProducts();
-  } catch (e) { showToast('Erreur lors de la mise à jour.', 'error'); }
+function toggleVisible(id, current) {
+  const data = lsGet();
+  const p = data.products.find(x => String(x.id) === String(id));
+  if (p) { p.visible = !current; lsSave(data); }
+  loadProducts();
 }
 
 // ── PRODUCT MODAL ──
@@ -1222,23 +1195,23 @@ async function saveProduct() {
       label_2: document.getElementById('f-label2').value.trim() || null,
       tags: prodTags,
       visible: true,
+      created_at: new Date().toISOString(),
     };
 
+    const data = lsGet();
     if (prodEditingId) {
-      await sbFetch('products?id=eq.' + prodEditingId, { method: 'PATCH', body: JSON.stringify(payload) });
-      // Also sync to legacy table if id matches
-      sbFetch(LEGACY_TABLE + '?id=eq.' + prodEditingId, { method: 'PATCH', body: JSON.stringify(payload) }).catch(() => {});
+      const idx = data.products.findIndex(x => String(x.id) === String(prodEditingId));
+      if (idx > -1) { data.products[idx] = { ...data.products[idx], ...payload }; }
       showToast('Produit mis à jour.', 'success');
     } else {
-      const newRows = await sbFetch('products', { method: 'POST', body: JSON.stringify(payload) });
-      // Also write to legacy table
-      if (newRows && newRows[0]) {
-        sbFetch(LEGACY_TABLE, { method: 'POST', body: JSON.stringify({ ...payload, id: newRows[0].id }), prefer: 'return=minimal' }).catch(() => {});
-      }
+      const maxId = Math.max(0, ...data.products.map(p => p.id || 0), ...STATIC_PRODUCTS.map(p => p.id));
+      payload.id = maxId + 1;
+      data.products.push(payload);
       showToast('Produit ajouté avec succès.', 'success');
     }
+    lsSave(data);
     closeProdModal();
-    await loadProducts();
+    loadProducts();
   } catch (e) {
     showToast('Erreur : ' + e.message, 'error');
   } finally {
@@ -1246,34 +1219,29 @@ async function saveProduct() {
   }
 }
 
-async function deleteProduct(id) {
-  try {
-    await sbFetch('products?id=eq.' + id, { method: 'DELETE', prefer: 'return=minimal' });
-    sbFetch(LEGACY_TABLE + '?id=eq.' + id, { method: 'DELETE', prefer: 'return=minimal' }).catch(() => {});
-    showToast('Produit supprimé.', 'success');
-    await loadProducts();
-  } catch (e) { showToast('Erreur lors de la suppression.', 'error'); }
+function deleteProduct(id) {
+  const data = lsGet();
+  data.products = data.products.filter(x => String(x.id) !== String(id));
+  lsSave(data);
+  showToast('Produit supprimé.', 'success');
+  loadProducts();
 }
 
 // ═══════════════════════════════════════════════
 // TAB: COMMANDES
 // ═══════════════════════════════════════════════
-async function loadOrders() {
+function loadOrders() {
   document.getElementById('orders-loading').style.display = 'flex';
   document.getElementById('orders-wrap').style.display = 'none';
+  // Orders are stored in nourya_orders localStorage key (set by main.js checkout)
   try {
-    const data = await sbFetch('orders?order=created_at.desc&select=*');
-    orders = data || [];
-    renderOrders();
-    renderOrderStats();
-  } catch (e) {
-    showToast('Erreur de chargement des commandes.', 'error');
-    orders = [];
-    renderOrders();
-  } finally {
-    document.getElementById('orders-loading').style.display = 'none';
-    document.getElementById('orders-wrap').style.display = 'block';
-  }
+    const raw = localStorage.getItem('nourya_orders');
+    orders = raw ? JSON.parse(raw) : [];
+  } catch(e) { orders = []; }
+  renderOrders();
+  renderOrderStats();
+  document.getElementById('orders-loading').style.display = 'none';
+  document.getElementById('orders-wrap').style.display = 'block';
 }
 
 function renderOrders() {
@@ -1349,20 +1317,22 @@ function toggleOrderDetails(id) {
   if (row) row.classList.toggle('open');
 }
 
-async function updateOrderPayment(id, status) {
-  try {
-    await sbFetch('orders?id=eq.' + id, { method: 'PATCH', body: JSON.stringify({ payment_status: status }), prefer: 'return=minimal' });
-    showToast('Statut paiement mis à jour.', 'success');
-    await loadOrders();
-  } catch (e) { showToast('Erreur : ' + e.message, 'error'); }
+function updateOrderPayment(id, status) {
+  const raw = localStorage.getItem('nourya_orders');
+  const ords = raw ? JSON.parse(raw) : [];
+  const o = ords.find(x => x.id === id);
+  if (o) { o.payment_status = status; localStorage.setItem('nourya_orders', JSON.stringify(ords)); }
+  showToast('Statut paiement mis à jour.', 'success');
+  loadOrders();
 }
 
-async function updateOrderDelivery(id, status) {
-  try {
-    await sbFetch('orders?id=eq.' + id, { method: 'PATCH', body: JSON.stringify({ delivery_status: status }), prefer: 'return=minimal' });
-    showToast('Statut livraison mis à jour.', 'success');
-    await loadOrders();
-  } catch (e) { showToast('Erreur : ' + e.message, 'error'); }
+function updateOrderDelivery(id, status) {
+  const raw = localStorage.getItem('nourya_orders');
+  const ords = raw ? JSON.parse(raw) : [];
+  const o = ords.find(x => x.id === id);
+  if (o) { o.delivery_status = status; localStorage.setItem('nourya_orders', JSON.stringify(ords)); }
+  showToast('Statut livraison mis à jour.', 'success');
+  loadOrders();
 }
 
 function renderOrderStats() {
@@ -1378,21 +1348,14 @@ function renderOrderStats() {
 // ═══════════════════════════════════════════════
 // TAB: ANNONCES
 // ═══════════════════════════════════════════════
-async function loadAnnouncements() {
+function loadAnnouncements() {
   document.getElementById('ann-loading').style.display = 'flex';
   document.getElementById('ann-wrap').style.display = 'none';
-  try {
-    const data = await sbFetch('announcements?order=created_at.desc&select=*');
-    announcements = data || [];
-    renderAnnouncements();
-  } catch (e) {
-    showToast('Erreur de chargement des annonces.', 'error');
-    announcements = [];
-    renderAnnouncements();
-  } finally {
-    document.getElementById('ann-loading').style.display = 'none';
-    document.getElementById('ann-wrap').style.display = 'block';
-  }
+  const data = lsGet();
+  announcements = data.announcements || [];
+  renderAnnouncements();
+  document.getElementById('ann-loading').style.display = 'none';
+  document.getElementById('ann-wrap').style.display = 'block';
 }
 
 function renderAnnouncements() {
@@ -1415,11 +1378,11 @@ function renderAnnouncements() {
   }).join('');
 }
 
-async function toggleAnn(id, current) {
-  try {
-    await sbFetch('announcements?id=eq.' + id, { method: 'PATCH', body: JSON.stringify({ active: !current }), prefer: 'return=minimal' });
-    await loadAnnouncements();
-  } catch (e) { showToast('Erreur : ' + e.message, 'error'); }
+function toggleAnn(id, current) {
+  const data = lsGet();
+  const a = data.announcements.find(x => String(x.id) === String(id));
+  if (a) { a.active = !current; lsSave(data); }
+  loadAnnouncements();
 }
 
 function openAnnModal(id = null) {
@@ -1456,14 +1419,9 @@ function toggleAnnActiveUI() {
   document.getElementById('ann-active-toggle').className = 'vis-toggle' + (annActiveState ? ' on' : '');
 }
 
-async function saveAnn() {
+function saveAnn() {
   const title = document.getElementById('ann-title').value.trim();
   if (!title) { showToast('Le titre est obligatoire.', 'error'); return; }
-
-  const btn = document.getElementById('ann-save-btn');
-  const label = document.getElementById('ann-save-label');
-  const spinner = document.getElementById('ann-save-spinner');
-  btn.disabled = true; label.style.display = 'none'; spinner.style.display = 'inline-block';
 
   const payload = {
     title,
@@ -1472,29 +1430,28 @@ async function saveAnn() {
     active: annActiveState,
   };
 
-  try {
-    if (annEditingId) {
-      await sbFetch('announcements?id=eq.' + annEditingId, { method: 'PATCH', body: JSON.stringify(payload) });
-      showToast('Annonce mise à jour.', 'success');
-    } else {
-      await sbFetch('announcements', { method: 'POST', body: JSON.stringify(payload) });
-      showToast('Annonce créée.', 'success');
-    }
-    closeAnnModal();
-    await loadAnnouncements();
-  } catch (e) {
-    showToast('Erreur : ' + e.message, 'error');
-  } finally {
-    btn.disabled = false; label.style.display = 'inline'; spinner.style.display = 'none';
+  const data = lsGet();
+  if (annEditingId) {
+    const idx = data.announcements.findIndex(x => String(x.id) === String(annEditingId));
+    if (idx > -1) data.announcements[idx] = { ...data.announcements[idx], ...payload };
+    showToast('Annonce mise à jour.', 'success');
+  } else {
+    payload.id = Date.now();
+    payload.created_at = new Date().toISOString();
+    data.announcements.unshift(payload);
+    showToast('Annonce créée.', 'success');
   }
+  lsSave(data);
+  closeAnnModal();
+  loadAnnouncements();
 }
 
-async function deleteAnn(id) {
-  try {
-    await sbFetch('announcements?id=eq.' + id, { method: 'DELETE', prefer: 'return=minimal' });
-    showToast('Annonce supprimée.', 'success');
-    await loadAnnouncements();
-  } catch (e) { showToast('Erreur : ' + e.message, 'error'); }
+function deleteAnn(id) {
+  const data = lsGet();
+  data.announcements = data.announcements.filter(x => String(x.id) !== String(id));
+  lsSave(data);
+  showToast('Annonce supprimée.', 'success');
+  loadAnnouncements();
 }
 
 // ═══════════════════════════════════════════════
@@ -1502,53 +1459,30 @@ async function deleteAnn(id) {
 // ═══════════════════════════════════════════════
 const SETTINGS_KEYS = ['whatsapp', 'instagram', 'tiktok', 'facebook', 'ccp', 'rib', 'baridimob', 'email_admin', 'note_livraison'];
 
-async function loadSettings() {
+function loadSettings() {
   document.getElementById('settings-loading').style.display = 'flex';
   document.getElementById('settings-wrap').style.display = 'none';
-  try {
-    const data = await sbFetch('site_settings?select=key,value');
-    siteSettings = {};
-    (data || []).forEach(row => { siteSettings[row.key] = row.value; });
-    SETTINGS_KEYS.forEach(k => {
-      const el = document.getElementById('set-' + k.replace(/_/g, '-'));
-      if (el) el.value = siteSettings[k] || '';
-    });
-  } catch (e) {
-    showToast('Erreur de chargement des paramètres.', 'error');
-  } finally {
-    document.getElementById('settings-loading').style.display = 'none';
-    document.getElementById('settings-wrap').style.display = 'block';
-  }
+  const data = lsGet();
+  siteSettings = data.settings || {};
+  SETTINGS_KEYS.forEach(k => {
+    const el = document.getElementById('set-' + k.replace(/_/g, '-'));
+    if (el) el.value = siteSettings[k] || '';
+  });
+  document.getElementById('settings-loading').style.display = 'none';
+  document.getElementById('settings-wrap').style.display = 'block';
 }
 
-async function saveSettings() {
-  const btn = document.getElementById('settings-save-btn');
-  const label = document.getElementById('settings-save-label');
-  const spinner = document.getElementById('settings-spinner');
-  btn.disabled = true; label.style.display = 'none'; spinner.style.display = 'inline-block';
-
-  try {
-    const upserts = SETTINGS_KEYS.map(k => {
-      const elId = 'set-' + k.replace(/_/g, '-');
-      const val = document.getElementById(elId)?.value?.trim() || '';
-      return { key: k, value: val };
-    });
-
-    await sbFetch('site_settings', {
-      method: 'POST',
-      body: JSON.stringify(upserts),
-      prefer: 'resolution=merge-duplicates,return=minimal',
-    });
-
-    const saved = document.getElementById('settings-saved');
-    saved.classList.add('show');
-    setTimeout(() => saved.classList.remove('show'), 3000);
-    showToast('Paramètres enregistrés.', 'success');
-  } catch (e) {
-    showToast('Erreur : ' + e.message, 'error');
-  } finally {
-    btn.disabled = false; label.style.display = 'inline'; spinner.style.display = 'none';
-  }
+function saveSettings() {
+  const data = lsGet();
+  SETTINGS_KEYS.forEach(k => {
+    const elId = 'set-' + k.replace(/_/g, '-');
+    data.settings[k] = document.getElementById(elId)?.value?.trim() || '';
+  });
+  lsSave(data);
+  const saved = document.getElementById('settings-saved');
+  saved.classList.add('show');
+  setTimeout(() => saved.classList.remove('show'), 3000);
+  showToast('Paramètres enregistrés.', 'success');
 }
 
 // ═══════════════════════════════════════════════
@@ -1581,7 +1515,7 @@ function showToast(msg, type = 'success') {
 // HELPERS
 // ═══════════════════════════════════════════════
 function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
-function catLabel(c) { return { visage: 'Visage', cheveux: 'Cheveux', corps: 'Corps & Hammam' }[c] || c; }
+function catLabel(c) { return { visage: 'Visage', cheveux: 'Cheveux', corps: 'Corps & Hammam', hygiene: 'Hygiène' }[c] || c; }
 
 // ── CLOSE MODALS ON OVERLAY CLICK ──
 document.getElementById('prod-modal-ov').addEventListener('click', e => { if (e.target === document.getElementById('prod-modal-ov')) closeProdModal(); });

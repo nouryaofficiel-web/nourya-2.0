@@ -156,6 +156,8 @@ nav.solid .hamburger span{background:var(--txt);}
   animation:badgePop .3s var(--ease2);
 }
 @keyframes badgePop{from{transform:scale(0);}to{transform:scale(1);}}
+@keyframes badgeBump{0%{transform:scale(1);}40%{transform:scale(1.6);}100%{transform:scale(1);}}
+.nbadge.bump{animation:badgeBump .4s var(--ease2);}
 .nbtn{
   background:transparent;border:1px solid rgba(196,164,92,.4);
   color:var(--c);padding:8px 20px;font-family:var(--fb);
